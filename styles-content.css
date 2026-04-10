@@ -202,3 +202,35 @@
   .contact-row {flex-wrap: wrap}
   .contact-btn {margin-left: 0}
 }
+
+
+/* Mobile fix: only first home hero banner image cropping */
+@media (max-width: 640px) {
+  .hero-banner.home-hero.refined-hero {
+    min-height: auto;
+  }
+
+  .hero-banner.home-hero.refined-hero .hero-content.hero-grid {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 16px;
+  }
+
+  .hero-banner.home-hero.refined-hero .hero-visual-card.carousel-visual {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hero-banner.home-hero.refined-hero .carousel-frame {
+    min-height: auto;
+    aspect-ratio: auto;
+  }
+
+  .hero-banner.home-hero.refined-hero .carousel-frame img {
+    height: auto;
+    max-height: 42vh;
+    object-fit: contain;
+    display: block;
+  }
+}
