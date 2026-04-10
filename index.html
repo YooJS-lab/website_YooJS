@@ -1,22 +1,14 @@
 <!doctype html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>숙주-바이러스 면역동력학 연구실</title><link rel="stylesheet" href="styles.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script defer src="app.js"></script></head><body data-bg-key="home"><header class="site-header">
   <div class="container nav-wrap">
     <a class="brand" href="index.html">
-      <img src="sukbamyeon.jpg" alt="숙바면 아이콘">
+      <img src="assets/images/sukbamyeon.jpg" alt="숙바면 아이콘">
       <span class="brand-text">숙주-바이러스 면역동력학 연구실<small>Host-Virus Immunodynamics Laboratory</small></span>
     </a>
     <button class="nav-toggle" id="nav-toggle" type="button">☰</button>
     <nav class="main-nav" id="main-nav">
       <a href="index.html" class="active">Home</a>
       <a href="publication.html">Publication</a>
-      <div class="nav-item has-submenu">
-        <a href="project.html">Project</a>
-        <div class="submenu">
-          <a href="project.html">Project</a>
-          <a href="innovations.html">Innovations</a>
-          <a href="themes.html">Research Themes</a>
-          <a href="methods.html">Core Methods</a>
-        </div>
-      </div>
+      <div class="nav-item has-submenu"><a href="project.html">Project</a><div class="submenu"><a href="project.html">Project</a><a href="innovations.html">Innovations</a></div></div>
       <a href="members.html">Lab Member</a>
       <a href="boards.html">Boards</a>
       <a href="gallery.html">Gallery</a>
@@ -43,7 +35,7 @@
         </div>
         <div class="hero-visual-card carousel-visual" id="home-research-carousel">
           <div class="hero-visual-frame carousel-frame">
-            <img id="carousel-image" src="slide-innate-signaling.png" alt="선천면역 반응 및 항바이러스 신호전달 기전 연구 figure">
+            <img id="carousel-image" src="assets/images/slide-innate-signaling.png" alt="선천면역 반응 및 항바이러스 신호전달 기전 연구 figure">
           </div>
           <div class="hero-visual-meta">
             <strong>Featured Figure</strong>
@@ -80,11 +72,19 @@
     </div>
   </div>
 </section>
-<section class="section">
+<section class="section homepage-updates-section">
   <div class="container">
-    <div class="section-header"><h2>Latest Updates</h2></div>
-    <div id="public-post-status" class="status hidden"></div>
-    <div id="public-post-list" class="post-grid"></div>
+    <div class="homepage-updates-grid">
+      <section class="panel news-panel">
+        <div class="section-header compact-section-header"><h2>News</h2></div>
+        <div id="public-post-status" class="status hidden"></div>
+        <div id="news-post-list" class="news-list"></div>
+      </section>
+      <section class="panel latest-panel">
+        <div class="section-header compact-section-header"><h2>Latest Updates</h2></div>
+        <div id="public-post-list" class="post-strip latest-carousel"></div>
+      </section>
+    </div>
   </div>
 </section>
 </main><footer class="site-footer"><div class="container footer-grid"><div><h3>숙주-바이러스 면역동력학 연구실</h3><p>Kyungpook National University</p><p>미래융합과학관 628호</p></div><div><h4>Public Pages</h4><a href="index.html">Home</a><br><a href="publication.html">Publication</a><br><a href="project.html">Project</a><br><a href="members.html">Lab Member</a><br><a href="boards.html">Boards</a><br><a href="gallery.html">Gallery</a></div><div><h4>Member Access</h4><a href="login.html">Login</a><br><a href="dashboard.html">Dashboard</a></div></div></footer>
@@ -92,28 +92,40 @@
 window.addEventListener('DOMContentLoaded', function () {
   const slides = [
     {
-      image: 'slide-innate-signaling.png',
-      alt: '선천면역 반응 및 항바이러스 신호전달 기전 연구 figure',
+      image: 'assets/images/slide-innate-signaling.png',
+      alt: { ko: '선천면역 반응 및 항바이러스 신호전달 기전 연구 figure', en: 'Figure on innate immune responses and antiviral signaling mechanisms' },
       paper: 'The Innate Immune Viral Sensors and Their Functional Crosstalk',
-      description: '항바이러스 센서, IFN 유도, JAK-STAT 신호전달을 포함한 선천면역 반응 축을 요약한 대표 도식입니다.'
+      description: {
+        ko: '항바이러스 센서, IFN 유도, JAK-STAT 신호전달을 포함한 선천면역 반응 축을 요약한 대표 도식입니다.',
+        en: 'A representative schematic summarizing the innate immune response axis, including antiviral sensors, IFN induction, and JAK-STAT signaling.'
+      }
     },
     {
-      image: 'slide-sarscov2-mhci.png',
-      alt: 'SARS-CoV-2의 MHC class I 항원제시 억제 figure',
+      image: 'assets/images/slide-sarscov2-mhci.png',
+      alt: { ko: 'SARS-CoV-2의 MHC class I 항원제시 억제 figure', en: 'Figure showing SARS-CoV-2 inhibition of MHC class I antigen presentation' },
       paper: 'SARS-CoV-2 inhibits the MHC class I pathway by targeting the STAT1-IRF1-NLRC5 axis',
-      description: 'SARS-CoV-2가 STAT1-IRF1-NLRC5 축과 MHC class I 항원제시 경로를 교란하는 기전을 보여주는 figure입니다.'
+      description: {
+        ko: 'SARS-CoV-2가 STAT1-IRF1-NLRC5 축과 MHC class I 항원제시 경로를 교란하는 기전을 보여주는 figure입니다.',
+        en: 'A figure showing how SARS-CoV-2 disrupts the STAT1-IRF1-NLRC5 axis and the MHC class I antigen presentation pathway.'
+      }
     },
     {
-      image: 'natcomms_fig7.png',
-      alt: 'SARS-CoV-2 ORF6와 MHC class I pathway를 다룬 Nature Communications figure',
+      image: 'assets/images/natcomms_fig7.png',
+      alt: { ko: 'SARS-CoV-2 ORF6와 MHC class I pathway를 다룬 Nature Communications figure', en: 'Nature Communications figure on SARS-CoV-2 ORF6 and the MHC class I pathway' },
       paper: 'SARS-CoV-2 inhibits the MHC class I pathway by targeting the STAT1-IRF1-NLRC5 axis',
-      description: 'ORF6에 의한 핵내 이동 억제와 MHC class I 발현 저해를 패널별로 정리한 Nature Communications figure입니다.'
+      description: {
+        ko: 'ORF6에 의한 핵내 이동 억제와 MHC class I 발현 저해를 패널별로 정리한 Nature Communications figure입니다.',
+        en: 'A Nature Communications figure summarizing ORF6-mediated inhibition of nuclear transport and suppression of MHC class I expression by panel.'
+      }
     },
     {
-      image: 'slide-pulmonary-inflammatory.png',
-      alt: '폐 염증 반응 및 질환 모델 연구 figure',
+      image: 'assets/images/slide-pulmonary-inflammatory.png',
+      alt: { ko: '폐 염증 반응 및 질환 모델 연구 figure', en: 'Figure on pulmonary inflammatory responses and disease models' },
       paper: 'Lung-specific MCEMP1 functions as an adaptor for KIT to promote SCF-mediated mast cell proliferation',
-      description: '폐 조직 병리, 면역형광, 염증성 분자 신호를 통해 pulmonary inflammatory molecules 연구 축을 보여주는 figure입니다.'
+      description: {
+        ko: '폐 조직 병리, 면역형광, 염증성 분자 신호를 통해 pulmonary inflammatory molecules 연구 축을 보여주는 figure입니다.',
+        en: 'A figure highlighting the pulmonary inflammatory molecules research axis through lung histopathology, immunofluorescence, and inflammatory signaling.'
+      }
     }
   ];
 
@@ -143,19 +155,20 @@ window.addEventListener('DOMContentLoaded', function () {
 
   function updateSlide(resetTimer) {
     const slide = slides[current];
+    const lang = (localStorage.getItem('lab_site_lang') || document.documentElement.lang || 'ko') === 'en' ? 'en' : 'ko';
     imageEl.classList.add('is-swapping');
     setTimeout(function () {
       imageEl.src = slide.image;
-      imageEl.alt = slide.alt;
+      imageEl.alt = (slide.alt && slide.alt[lang]) || slide.alt || '';
       paperEl.textContent = slide.paper;
-      descEl.textContent = slide.description;
+      descEl.textContent = (slide.description && slide.description[lang]) || slide.description || '';
       imageEl.classList.remove('is-swapping');
       renderDots();
     }, 160);
 
     if (resetTimer) {
       clearInterval(timer);
-      timer = setInterval(nextSlide, 4000);
+      timer = setInterval(nextSlide, 3500);
     }
   }
 
@@ -165,7 +178,11 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   renderDots();
-  timer = setInterval(nextSlide, 4000);
+  updateSlide(false);
+  timer = setInterval(nextSlide, 3500);
+  window.addEventListener('lab-language-change', function(){
+    updateSlide(false);
+  });
 });
 </script>
 </body></html>
