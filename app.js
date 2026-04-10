@@ -279,6 +279,11 @@
 
   var navToggle=byId('nav-toggle'),mainNav=byId('main-nav');
   injectTranslateToggle();
+  var forcedLang=((document.body&&document.body.getAttribute('data-force-lang'))||document.documentElement.getAttribute('data-force-lang')||'').trim();
+  if(forcedLang){
+    currentLang = forcedLang==='en' ? 'en' : 'ko';
+    try{localStorage.setItem(LANG_KEY,currentLang);}catch(e){}
+  }
   document.documentElement.lang=currentLang;
   document.body && document.body.setAttribute('data-lang', currentLang);
   if(navToggle&&mainNav)navToggle.addEventListener('click',function(){mainNav.classList.toggle('open');});
@@ -773,20 +778,24 @@
   };
   function normalizeRoleCode(role,kind){
     var raw=String(role||'').trim();
+    var lower=raw.toLowerCase();
     var map={
-      'ms_course':'ms_course','석사과정생':'ms_course','MS course':'ms_course','ms':'ms',
-      'phd_course':'phd_course','박사과정생':'phd_course','PhD course':'phd_course','phd':'phd',
-      'integrated_course':'integrated_course','석박통합과정생':'integrated_course','Integrated MS-PhD course':'integrated_course','Graduate':'integrated_course',
-      'ura':'ura','학부연구생':'ura','학부연구원':'ura','URA':'ura','Undergraduate Researcher':'ura','Undergraduate researcher':'ura',
-      'postdoc':'postdoc','박사후과정생':'postdoc','Post Doc':'postdoc','Postdoctoral Researcher':'postdoc','Postdoctoral researcher':'postdoc'
+      'ms_course':'ms_course','석사과정생':'ms_course','ms course':'ms_course','석사':'ms',
+      'phd_course':'phd_course','박사과정생':'phd_course','phd course':'phd_course','박사':'phd',
+      'integrated_course':'integrated_course','석박통합과정생':'integrated_course','integrated ms-phd course':'integrated_course','graduate':'integrated_course',
+      'ura':'ura','학부연구생':'ura','학부연구원':'ura','undergraduate researcher':'ura','undergraduated researcher':'ura',
+      'postdoc':'postdoc','박사후과정생':'postdoc','post doc':'postdoc','postdoctoral researcher':'postdoc'
     };
-    var code=map[raw]||raw;
+    var code=map[raw]||map[lower]||raw;
     if(kind==='alumni'){
       if(code==='ms_course') code='ms';
       if(code==='phd_course') code='phd';
       if(code==='integrated_course') code='ms';
       if(code==='postdoc') code='phd';
       if(['ms','phd','ura'].indexOf(code)===-1) code='ms';
+    } else {
+      if(code==='ms') code='ms_course';
+      if(code==='phd') code='phd_course';
     }
     return code;
   }
@@ -799,7 +808,7 @@
     var alumniRoleMap={
       'ms':1,'석사':1,'MS':1,
       'phd':1,'박사':1,'PhD':1,
-      'ura':1,'학부연구생':1,'URA':1,'Undergraduate Researcher':1,'Undergraduate researcher':1
+      'ura':1,'학부연구생':1,'학부연구원':1,'URA':1,'Undergraduate Researcher':1,'Undergraduate researcher':1,'Undergraduated researcher':1
     };
     var memberRoleMap={
       'ms_course':1,'석사과정생':1,'MS course':1,
