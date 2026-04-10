@@ -58,14 +58,14 @@ main{padding-bottom:18px}
 .page-banner.faded::after,.hero-banner.faded::after{
   content:"";position:absolute;inset:0;background:linear-gradient(110deg, rgba(8,20,34,.46) 0%, rgba(11,34,57,.30) 48%, rgba(17,57,94,.12) 100%);
 }
-.hero-banner.home-hero{background-image:url("assets/home-banner-kawaii.png")}
-.page-banner.project-banner{background-image:url("assets/project-banner-fresh.svg")}
-.page-banner.publication-banner{background-image:url("assets/publication-banner-fresh.svg")}
-.page-banner.members-banner{background-image:url("assets/images/professor%20profile.jpg")}
-.page-banner.boards-banner{background-image:url("assets/boards-banner-fresh.svg")}
-.page-banner.innovations-banner{background-image:url("assets/project-banner-fresh.svg")}
-.page-banner.alumni-banner{background-image:url("assets/publication-banner.svg")}
-.page-banner.pictures-banner{background-image:var(--initial-gallery-banner, url("assets/gallery-banner-fresh.svg"))}
+.hero-banner.home-hero{background-image:url("home-banner-kawaii.png")}
+.page-banner.project-banner{background-image:url("project-banner-fresh.svg")}
+.page-banner.publication-banner{background-image:url("publication-banner-fresh.svg")}
+.page-banner.members-banner{background-image:url("professor%20profile.jpg")}
+.page-banner.boards-banner{background-image:url("boards-banner-fresh.svg")}
+.page-banner.innovations-banner{background-image:url("project-banner-fresh.svg")}
+.page-banner.alumni-banner{background-image:url("publication-banner.svg")}
+.page-banner.pictures-banner{background-image:var(--initial-gallery-banner, url("gallery-banner-fresh.svg"))}
 .hero-content,.page-banner-content{position:relative;z-index:2;padding:42px 42px 36px;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;min-height:430px}
 .hero-content.center-only{justify-content:center;align-items:flex-start}
 .eyebrow{display:inline-flex;align-items:center;gap:10px;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font-weight:900;font-size:.92rem;margin-bottom:16px;border:1px solid rgba(255,255,255,.22)}
@@ -717,7 +717,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 /* ===== April 9 homepage/member cleanup ===== */
 .brand img{width:62px;height:62px;object-fit:contain;display:block;flex-shrink:0}
 .hero-banner.home-hero{
-  background-image:linear-gradient(90deg,rgba(8,18,31,.86) 0%,rgba(9,25,43,.74) 40%,rgba(10,29,48,.34) 72%,rgba(10,29,48,.14) 100%),url("assets/home-research-bg.svg") !important;
+  background-image:linear-gradient(90deg,rgba(8,18,31,.86) 0%,rgba(9,25,43,.74) 40%,rgba(10,29,48,.34) 72%,rgba(10,29,48,.14) 100%),url("home-research-bg.svg") !important;
   background-size:cover;
   background-position:center center;
 }
@@ -816,7 +816,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 .member-photo-wrap{width:96px !important;height:96px !important;min-width:96px !important;border-radius:18px !important}
 .member-info h3{font-size:1.08rem !important}
 .member-info p,.member-position,.member-bio{font-size:.93rem !important}
-.page-banner.alumni-banner{background-image:linear-gradient(90deg,rgba(8,18,31,.72) 0%,rgba(11,27,45,.52) 44%,rgba(11,27,45,.18) 100%),url("assets/home-research-bg.svg") !important;background-size:cover;background-position:center}
+.page-banner.alumni-banner{background-image:linear-gradient(90deg,rgba(8,18,31,.72) 0%,rgba(11,27,45,.52) 44%,rgba(11,27,45,.18) 100%),url("home-research-bg.svg") !important;background-size:cover;background-position:center}
 @media (max-width: 920px){
   .research-summary-grid{grid-template-columns:1fr}
   .page-head.compact-title{display:block;max-width:100%;min-width:0}
@@ -826,7 +826,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 }
 
 /* ===== April 9 final corrections ===== */
-.hero-banner.home-hero{background-image:linear-gradient(92deg,rgba(7,17,29,.88) 0%,rgba(8,23,39,.8) 36%,rgba(10,28,47,.38) 70%,rgba(11,31,52,.16) 100%),url("assets/home-research-bg-alt.svg") !important;}
+.hero-banner.home-hero{background-image:linear-gradient(92deg,rgba(7,17,29,.88) 0%,rgba(8,23,39,.8) 36%,rgba(10,28,47,.38) 70%,rgba(11,31,52,.16) 100%),url("home-research-bg-alt.svg") !important;}
 .refined-hero{background:linear-gradient(135deg,#091a2b 0%,#113152 54%,#1a456f 100%) !important}
 .refined-hero::after{background:radial-gradient(circle at 18% 24%, rgba(255,255,255,.08) 0, rgba(255,255,255,0) 24%),radial-gradient(circle at 86% 16%, rgba(255,255,255,.07) 0, rgba(255,255,255,0) 18%),linear-gradient(115deg, rgba(5,15,24,.18) 0%, rgba(12,31,51,.06) 44%, rgba(255,255,255,0) 100%) !important}
 .hero-grid{grid-template-columns:minmax(0,1fr) minmax(400px,540px);gap:28px;min-height:410px}
@@ -846,7 +846,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 .research-summary-grid .card p{font-size:.94rem;line-height:1.72}
 .page-head.compact-title.mini-title{display:inline-flex;flex-direction:column;align-items:flex-start;min-width:180px;max-width:260px;padding:14px 18px !important;border-radius:16px !important}
 .member-section-head.compact-title.mini-title h2{font-size:1.32rem !important}
-.page-banner.alumni-banner{background-image:linear-gradient(90deg,rgba(8,18,31,.74) 0%,rgba(11,27,45,.56) 44%,rgba(11,27,45,.18) 100%),url("assets/home-research-bg-alt.svg") !important;background-size:cover;background-position:center}
+.page-banner.alumni-banner{background-image:linear-gradient(90deg,rgba(8,18,31,.74) 0%,rgba(11,27,45,.56) 44%,rgba(11,27,45,.18) 100%),url("home-research-bg-alt.svg") !important;background-size:cover;background-position:center}
 @media (max-width: 1100px){
   .research-summary-grid{grid-template-columns:1fr}
 }
@@ -857,7 +857,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 
 
 /* ===== April 9 homepage carousel update ===== */
-.hero-banner.home-hero{background-image:linear-gradient(90deg,rgba(6,18,30,.88) 0%,rgba(10,29,48,.82) 34%,rgba(14,38,63,.52) 68%,rgba(15,43,70,.20) 100%),url("assets/home-research-bg.svg") !important;background-size:cover;background-position:center !important}
+.hero-banner.home-hero{background-image:linear-gradient(90deg,rgba(6,18,30,.88) 0%,rgba(10,29,48,.82) 34%,rgba(14,38,63,.52) 68%,rgba(15,43,70,.20) 100%),url("home-research-bg.svg") !important;background-size:cover;background-position:center !important}
 .refined-hero{background:linear-gradient(135deg,#081723 0%,#0f2c46 55%,#17456d 100%) !important}
 .hero-grid{grid-template-columns:minmax(0,1fr) minmax(420px,560px);gap:30px;min-height:420px}
 .hero-copy-block h1{font-size:2.72rem;line-height:1.08}
@@ -959,7 +959,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 
 /* ===== April 9 requested update pack ===== */
 .page-banner.members-banner{
-  background-image:linear-gradient(90deg,rgba(7,20,34,.78) 0%,rgba(12,29,47,.56) 42%,rgba(12,29,47,.18) 100%),url("assets/images/slide-innate-signaling.png") !important;
+  background-image:linear-gradient(90deg,rgba(7,20,34,.78) 0%,rgba(12,29,47,.56) 42%,rgba(12,29,47,.18) 100%),url("slide-innate-signaling.png") !important;
   background-size:cover !important;
   background-position:center 36% !important;
 }
@@ -1024,7 +1024,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 
 
 /* 2026-04-09 requested refinements */
-.hero-banner.home-hero{background-image:linear-gradient(90deg,rgba(6,18,30,.88) 0%,rgba(10,29,48,.82) 34%,rgba(86,96,108,.42) 74%,rgba(218,223,229,.78) 100%),url("assets/home-research-bg.svg") !important;background-size:cover;background-position:center !important;}
+.hero-banner.home-hero{background-image:linear-gradient(90deg,rgba(6,18,30,.88) 0%,rgba(10,29,48,.82) 34%,rgba(86,96,108,.42) 74%,rgba(218,223,229,.78) 100%),url("home-research-bg.svg") !important;background-size:cover;background-position:center !important;}
 .member-title-chip,.member-section-head{display:inline-flex !important;align-items:center !important;width:auto !important;min-width:0 !important;max-width:none !important;padding:12px 16px !important;}
 .member-title-chip h2,.member-section-head h2{margin:0 !important;}
 .meta-list strong{display:inline-block;min-width:58px;}
@@ -1045,7 +1045,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
 
 
 /* 2026-04-09 final refinements */
-.hero-banner.home-hero{background-image:linear-gradient(90deg,rgba(8,23,37,.92) 0%,rgba(16,38,60,.82) 36%,rgba(109,120,132,.54) 74%,rgba(207,214,221,.88) 100%),url("assets/home-research-bg.svg") !important;}
+.hero-banner.home-hero{background-image:linear-gradient(90deg,rgba(8,23,37,.92) 0%,rgba(16,38,60,.82) 36%,rgba(109,120,132,.54) 74%,rgba(207,214,221,.88) 100%),url("home-research-bg.svg") !important;}
 .homepage-updates-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;gap:18px !important;align-items:start;}
 .news-panel,.latest-panel{padding:18px 20px !important;}
 .latest-panel{min-width:0;}
@@ -1086,7 +1086,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
       rgba(8,23,37,.92) 50%,
       rgba(72,84,97,.48) 74%,
       rgba(208,214,221,.86) 100%),
-    url("assets/home-research-bg.svg") !important;
+    url("home-research-bg.svg") !important;
   background-size:cover !important;
   background-position:center !important;
 }
@@ -1244,7 +1244,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
       rgba(44,60,78,.74) 66%,
       rgba(129,141,155,.52) 82%,
       rgba(217,223,229,.92) 100%),
-    url("assets/home-research-bg.svg") !important;
+    url("home-research-bg.svg") !important;
   background-size:cover !important;
   background-position:center !important;
 }
@@ -1299,7 +1299,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:18px 0}
   background-image:
     radial-gradient(circle at 50% 50%, rgba(74,112,148,.24) 0%, rgba(74,112,148,.12) 10%, rgba(74,112,148,0) 22%),
     linear-gradient(90deg, rgba(6,20,32,.97) 0%, rgba(6,20,32,.95) 49.5%, rgba(22,47,74,.90) 50%, rgba(80,99,119,.58) 70%, rgba(217,223,229,.90) 100%),
-    url("assets/home-research-bg.svg") !important;
+    url("home-research-bg.svg") !important;
   background-size:cover !important;
   background-position:center !important;
 }
