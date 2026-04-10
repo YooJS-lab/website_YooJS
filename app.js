@@ -39,7 +39,8 @@
     '졸업생 정보를 불러오는 중...':'Loading alumni information...',
     '본 연구실은 바이러스 감염에 대한 숙주 면역반응과 바이러스의 면역회피 기전을 연구합니다. SARS-CoV-2, henipavirus, dengue virus, influenza virus 등 신·변종 바이러스의 병원성과 염증 유발 기전을 분석하고, 폐 염증 반응 및 관련 질환의 병태생리를 함께 규명합니다.':'Our laboratory studies host immune responses to viral infection and mechanisms of viral immune evasion. We analyze the pathogenicity and inflammation-inducing mechanisms of emerging and re-emerging viruses such as SARS-CoV-2, henipavirus, dengue virus, and influenza virus, while also defining the pathophysiology of pulmonary inflammation and related diseases.',
     '이를 바탕으로 항바이러스 치료 전략과 면역조절 기반 응용 연구를 수행하고 있습니다.':'Based on this work, we pursue antiviral therapeutic strategies and immune-modulatory applications.',
-    '유지승 교수':'Prof. Jiseung Yoo',
+    '유지승 교수':'Prof. Ji-Seung Yoo',
+    'Prof. Ji-Seung Yoo':'Prof. Ji-Seung Yoo',
     '연구 테마':'Research Themes',
     '아래 내용은 연구실 구조에 맞게 자유롭게 수정할 수 있습니다.':'The content below can be freely adjusted to match the laboratory structure.',
     '기술 혁신 방향':'Innovation Directions',
@@ -121,6 +122,15 @@
     'Supabase 연결이 필요합니다.':'A Supabase connection is required.',
     '불러오는 중...':'Loading...',
     '경북대학교 숙주 바이러스 면역동력학 연구실':'Host-Virus Immunodynamics Laboratory, Kyungpook National University',
+    '석사과정생':'MS course',
+    '박사과정생':'PhD course',
+    '석박통합과정생':'Integrated MS-PhD course',
+    '학부연구생':'Undergraduate Researcher',
+    '박사후과정생':'Postdoctoral Researcher',
+    '교신저자':'Corresponding author',
+    '제1저자':'First author',
+    '공동저자':'Co-author',
+    '공동제1저자':'Co-first author',
     '이름 *':'Name *',
     '홍길동':'Hong Gil-dong',
     '구분':'Type',
@@ -182,6 +192,13 @@
     qsa('.lang-toggle').forEach(function(btn){
       btn.textContent = currentLang==='en' ? 'KOR' : 'ENG';
       btn.setAttribute('aria-label', currentLang==='en' ? 'Switch to Korean' : 'Switch to English');
+      btn.setAttribute('title', currentLang==='en' ? 'Korean' : 'English');
+    });
+  }
+  function applyDataLangText(root){
+    (root && root.querySelectorAll ? root : document).querySelectorAll('[data-ko][data-en]').forEach(function(el){
+      var value = currentLang==='en' ? el.getAttribute('data-en') : el.getAttribute('data-ko');
+      if(value!=null) el.textContent = value;
     });
   }
   function injectTranslateToggle(){
@@ -201,6 +218,7 @@
       if(!document.documentElement.dataset.titleKo) document.documentElement.dataset.titleKo=document.title;
       document.title = currentLang==='en' ? tr(document.documentElement.dataset.titleKo) : document.documentElement.dataset.titleKo;
     }
+    applyDataLangText(root);
     var walker=document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode:function(node){
         if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
@@ -446,13 +464,31 @@
     el.addEventListener('mouseleave',function(){isDown=false;el.classList.remove('dragging');});
     el.addEventListener('mousemove',function(e){if(!isDown)return;e.preventDefault();var x=e.pageX-el.offsetLeft;var walk=(x-startX)*1.2;el.scrollLeft=scrollLeft-walk;});
   }
+  function cachePosts(posts){
+    try{localStorage.setItem('lab_posts_cache', JSON.stringify(posts||[]));}catch(e){}
+  }
+  function getCachedPosts(){
+    try{return JSON.parse(localStorage.getItem('lab_posts_cache')||'[]');}catch(e){return [];}
+  }
+
   async function renderPublicPosts(){
     var c=byId('public-post-list'),n=byId('news-post-list'),st=byId('public-post-status');if(!c&&!n)return;
-    if(!sb){setStatus(st,'');return;}
-    var r=await sb.from('posts').select('id,title,body,image_url,image_path,created_at,author_name,section,category').order('created_at',{ascending:false});
-    if(r.error){setStatus(st,r.error.message,'error');return;}
-    setStatus(st,'');
-    var all=r.data||[];
+    var all=[];
+    if(sb){
+      try{
+        var r=await sb.from('posts').select('id,title,body,image_url,image_path,created_at,author_name,section,category').order('created_at',{ascending:false});
+        if(r.error) throw r.error;
+        all=r.data||[];
+        cachePosts(all);
+        setStatus(st,'');
+      }catch(err){
+        all=getCachedPosts();
+        setStatus(st, all.length ? '온라인 게시물을 불러오지 못해 저장된 게시물을 표시합니다.' : (err.message||'Failed to fetch'),'error');
+      }
+    }else{
+      all=getCachedPosts();
+      setStatus(st,'');
+    }
     var latest=all.filter(function(p){return p.section!=='news';}).slice(0,3);
     var newsPosts=all.filter(function(p){return p.section==='news';}).slice(0,5);
     if(c){
@@ -475,20 +511,34 @@
   async function renderSectionPosts(){
     var containers=qsa('[data-section]');if(!containers.length)return;
     var st=byId('section-post-status');
-    if(!sb){setStatus(st,'');return;}
+    var cachedAll=getCachedPosts();
+    var fallbackUsed=false;
     for(var i=0;i<containers.length;i++){
       var c=containers[i],sec=c.dataset.section,cat=c.dataset.category||'';
-      var q=sb.from('posts').select('id,title,body,image_url,image_path,created_at,author_name,section,category').eq('section',sec).order('created_at',{ascending:false});
-      if(cat)q=q.eq('category',cat);
-      var r=await q;
-      if(r.error){setStatus(st,r.error.message,'error');return;}
-      renderPosts(c,r.data||[],cat?cat+' 글이 없습니다.':(sec==='gallery'?tr('갤러리'):tr('게시판'))+' 글이 없습니다.');
+      var rows=[];
+      if(sb){
+        try{
+          var q=sb.from('posts').select('id,title,body,image_url,image_path,created_at,author_name,section,category').eq('section',sec).order('created_at',{ascending:false});
+          if(cat)q=q.eq('category',cat);
+          var r=await q;
+          if(r.error) throw r.error;
+          rows=r.data||[];
+        }catch(err){
+          rows=cachedAll.filter(function(p){return p.section===sec && (!cat || p.category===cat);});
+          fallbackUsed=true;
+          setStatus(st, rows.length ? '온라인 게시물을 불러오지 못해 저장된 게시물을 표시합니다.' : (err.message||'Failed to fetch'),'error');
+        }
+      }else{
+        rows=cachedAll.filter(function(p){return p.section===sec && (!cat || p.category===cat);});
+        fallbackUsed=rows.length>0;
+      }
+      renderPosts(c,rows,cat?cat+' 글이 없습니다.':(sec==='gallery'?tr('갤러리'):tr('게시판'))+' 글이 없습니다.');
       if(sec==='gallery'){
         c.classList.remove('post-strip');
         c.classList.add('gallery-grid');
       }
     }
-    setStatus(st,'');
+    if(!fallbackUsed) setStatus(st,'');
   }
 
   async function handleLogin(){
@@ -667,8 +717,8 @@
     if(!sb){root.innerHTML='<p style="color:var(--muted)">Supabase 연결이 필요합니다.</p>';return;}
     root.innerHTML='<p style="color:var(--muted)">불러오는 중...</p>';
     var MEMBER_LAB='경북대학교 숙주 바이러스 면역동력학 연구실';
-    var MEMBER_ROLES=['MS course','PhD course','Post Doc','URA','Graduate'];
-    var ALUMNI_ROLES=['URA','MS course','PhD course','Graduate'];
+    var MEMBER_ROLES=['석사과정생','박사과정생','석박통합과정생','학부연구생'];
+    var ALUMNI_ROLES=['석사과정생','박사과정생','석박통합과정생','학부연구생'];
     var CURRENT_YEAR=(new Date()).getFullYear();
     var YEAR_OPTIONS=[]; for(var y=CURRENT_YEAR+1;y>=2000;y--){YEAR_OPTIONS.push(String(y));}
     async function uploadPhoto(file){var ext=(file.name.split('.').pop()||'jpg').toLowerCase();var path='members/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;return await uploadFile(path,file);}
@@ -680,15 +730,32 @@
   }
 
   function normalizeMemberRole(role){
-    var map={'석사과정생':tr('석사과정생'),'박사과정생':tr('박사과정생'),'박사후과정생':tr('박사후과정생'),'학부연구생':tr('학부연구생'),'졸업생':tr('졸업생'),'학부연구원':tr('학부연구원')};
+    var map={
+      'MS course':tr('석사과정생'),
+      'PhD course':tr('박사과정생'),
+      'Integrated MS-PhD course':tr('석박통합과정생'),
+      'URA':tr('학부연구생'),
+      'Undergraduate Researcher':tr('학부연구생'),
+      'Post Doc':tr('박사후과정생'),
+      'Postdoctoral Researcher':tr('박사후과정생'),
+      'Graduate':tr('석박통합과정생'),
+      '석사과정생':tr('석사과정생'),
+      '박사과정생':tr('박사과정생'),
+      '석박통합과정생':tr('석박통합과정생'),
+      '학부연구생':tr('학부연구생'),
+      '박사후과정생':tr('박사후과정생')
+    };
     return map[role]||role||'';
   }
   function memberCardHtml(m){
     var photoHtml=m.photo_url?'<div class="member-photo-wrap"><img src="'+escapeHtml(m.photo_url)+'" class="member-photo-img" alt="'+escapeHtml(m.name)+'"></div>':'<div class="member-photo-wrap member-photo-initial">'+escapeHtml((m.name||'?')[0])+'</div>';
+    var isAlumni=m.member_type==='alumni';
     var roleLabel=normalizeMemberRole(m.role);
+    if(isAlumni) roleLabel=(roleLabel||'').replace(/\s+course$/i,'').replace(/과정생$/,'');
     var title=escapeHtml(m.name||'')+(roleLabel?' <span class="member-role-inline">('+escapeHtml(roleLabel)+')</span>':'');
-    var yearChip=(m.member_type==='alumni'&&m.graduation_year)?'<p class="member-grad-year">Class of '+escapeHtml(String(m.graduation_year))+'</p>':'';
-    return '<article class="panel member-card">'+photoHtml+'<div class="member-info"><h3>'+title+'</h3>'+(m.current_position?'<p class="member-position">'+escapeHtml(m.current_position)+'</p>':'')+yearChip+(m.bio?'<p class="member-bio">'+escapeHtml(m.bio)+'</p>':'')+'</div></article>';
+    var yearChip=(isAlumni&&m.graduation_year)?'<p class="member-grad-year">Class of '+escapeHtml(String(m.graduation_year))+'</p>':'';
+    var positionHtml=(isAlumni&&m.current_position)?'<p class="member-position">'+escapeHtml(m.current_position)+'</p>':'';
+    return '<article class="panel member-card">'+photoHtml+'<div class="member-info"><h3>'+title+'</h3>'+positionHtml+yearChip+(m.bio?'<p class="member-bio">'+escapeHtml(m.bio)+'</p>':'')+'</div></article>';
   }
   async function renderLabMembers(){
     var grid=byId('lab-member-grid');if(!grid)return;
@@ -713,8 +780,12 @@
     try{
       var papers=Array.isArray(window.PUBLICATION_DB)?window.PUBLICATION_DB:null;
       if(!papers){
-        var res=await fetch('publication_db.json');
-        papers=await res.json();
+        try{
+          var res=await fetch('publication_db.json');
+          papers=await res.json();
+        }catch(fetchErr){
+          papers=Array.isArray(window.PUBLICATION_DB)?window.PUBLICATION_DB:[];
+        }
       }
       var years=[];
       var roles=[];
@@ -724,8 +795,8 @@
       });
       years.sort(function(a,b){return Number(b)-Number(a);});
       roles.sort();
-      if(yearSel) yearSel.innerHTML='<option value="">전체 연도</option>'+years.map(function(y){return '<option value="'+escapeHtml(y)+'">'+escapeHtml(y)+'</option>';}).join('');
-      if(roleSel) roleSel.innerHTML='<option value="">전체 역할</option>'+roles.map(function(v){return '<option value="'+escapeHtml(v)+'">'+escapeHtml(v)+'</option>';}).join('');
+      if(yearSel) yearSel.innerHTML='<option value="">'+tr('전체 연도')+'</option>'+years.map(function(y){return '<option value="'+escapeHtml(y)+'">'+escapeHtml(y)+'</option>';}).join('');
+      if(roleSel) roleSel.innerHTML='<option value="">'+tr('전체 역할')+'</option>'+roles.map(function(v){return '<option value="'+escapeHtml(v)+'">'+escapeHtml(tr(v))+'</option>';}).join('');
 
       function doiHref(v){
         v=String(v||'').trim();
@@ -736,23 +807,29 @@
         return 'https://doi.org/'+v.replace(/^doi:\s*/i,'');
       }
       function render(){
+        var lang=currentLang==='en'?'en':'ko';
         var term=(search&&search.value||'').trim().toLowerCase();
         var year=(yearSel&&yearSel.value)||'';
         var role=(roleSel&&roleSel.value)||'';
         var sort=(sortSel&&sortSel.value)||'desc';
         var filtered=papers.filter(function(p){
-          var hay=[p.title,p.journal,p.summary,p.author_role,String(p.year)].join(' ').toLowerCase();
+          var hay=[p.title,p.journal,p.summary,p.summary_en,p.author_role,p.author_role_en,String(p.year)].join(' ').toLowerCase();
           return (!term||hay.indexOf(term)!==-1) && (!year||String(p.year)===year) && (!role||p.author_role===role);
         }).sort(function(a,b){
           return sort==='asc' ? a.year-b.year || a.no-b.no : b.year-a.year || a.no-b.no;
         });
-        if(count) count.textContent='총 '+filtered.length+'편';
+        if(count) count.textContent=(lang==='en'?'Total ':'총 ')+filtered.length+(lang==='en'?' papers':'편');
         list.innerHTML=filtered.length ? filtered.map(function(p){
           var href=doiHref(p.doi);
-          return '<article class="panel pub-card"><div class="pub-top"><span class="badge">'+escapeHtml(String(p.year))+'</span><span class="mini-tag">'+escapeHtml(p.author_role)+'</span></div><h3>'+escapeHtml(p.title)+'</h3><div class="pub-meta">'+escapeHtml(p.journal)+'</div><p>'+escapeHtml(p.summary)+'</p>'+(href?'<div class="pub-actions"><a class="button" target="_blank" rel="noopener" href="'+escapeHtml(href)+'">DOI / 원문 보기</a></div>':'')+'</article>';
-        }).join('') : '<article class="panel post-card"><p>조건에 맞는 논문이 없습니다.</p></article>';
+          var summaryKo=(p.summary||'').trim();
+          var summaryEn=(p.summary_en||'').trim();
+          var summary=lang==='en' ? (summaryEn || summaryKo) : (summaryKo || summaryEn);
+          var roleLabel=lang==='en'?(p.author_role_en||tr(p.author_role)||p.author_role):(p.author_role||p.author_role_en||'');
+          return '<article class="panel pub-card"><div class="pub-top"><span class="badge">'+escapeHtml(String(p.year))+'</span><span class="mini-tag">'+escapeHtml(roleLabel)+'</span></div><h3>'+escapeHtml(p.title)+'</h3><div class="pub-meta">'+escapeHtml(p.journal)+'</div><p class="pub-summary" data-ko="'+escapeHtml(summaryKo||summaryEn)+'" data-en="'+escapeHtml(summaryEn||summaryKo)+'">'+escapeHtml(summary)+'</p>'+(href?'<div class="pub-actions"><a class="button" target="_blank" rel="noopener" href="'+escapeHtml(href)+'">'+(lang==='en'?'View DOI / Paper':'DOI / 원문 보기')+'</a></div>':'')+'</article>';
+        }).join('') : '<article class="panel post-card"><p>'+(lang==='en'?'No papers match the selected conditions.':'조건에 맞는 논문이 없습니다.')+'</p></article>';
       }
       [search,yearSel,roleSel,sortSel].forEach(function(el){if(el)el.addEventListener('input',render); if(el)el.addEventListener('change',render);});
+      window.addEventListener('lab-language-change', render);
       render();
     }catch(e){
       list.innerHTML='<article class="panel post-card"><p>논문 DB를 불러오지 못했습니다.</p></article>';
