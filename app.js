@@ -153,10 +153,6 @@
     '졸업생 추가':'Add Alumni',
     '등록된 멤버가 없습니다.':'No members have been registered.',
     '등록된 졸업생이 없습니다.':'No alumni have been registered.',
-    '석사과정생':'MS course',
-    '박사과정생':'PhD course',
-    '박사후과정생':'Postdoctoral researcher',
-    '학부연구생':'Undergraduate researcher',
     '학부연구원':'Undergraduate researcher',
     '졸업생':'Alumni',
     'Board':'Board',
@@ -282,7 +278,6 @@
   var forcedLang=((document.body&&document.body.getAttribute('data-force-lang'))||document.documentElement.getAttribute('data-force-lang')||'').trim();
   if(forcedLang){
     currentLang = forcedLang==='en' ? 'en' : 'ko';
-    try{localStorage.setItem(LANG_KEY,currentLang);}catch(e){}
   }
   document.documentElement.lang=currentLang;
   document.body && document.body.setAttribute('data-lang', currentLang);
@@ -660,7 +655,6 @@
       c.classList.add('latest-carousel');
       enableHorizontalDrag(c);
     }
-    applyTranslations(document.body||document);
     if(n){
       if(!newsPosts.length){n.innerHTML='<div class="news-item empty">등록된 뉴스가 없습니다.</div>';}
       else{
@@ -1055,9 +1049,7 @@
     if(!sb){grid.innerHTML='<p style="color:var(--muted)">Supabase 연결이 필요합니다.</p>';return;}
     var r=await fetchAllMemberRows();
     if(r.error){grid.innerHTML='<p style="color:#a44236">'+escapeHtml(r.error.message||'멤버 정보를 불러오지 못했습니다.')+'</p>';return;}
-    var rows=(r.data||[]).filter(isAlumniRecord).map(function(m){
-      return m;
-    });
+    var rows=(r.data||[]).filter(isAlumniRecord);
     if(!rows.length){grid.innerHTML='<p style="color:var(--muted)">등록된 졸업생이 없습니다.</p>';return;}
     grid.innerHTML=rows.map(memberCardHtml).join('');
   }
@@ -1131,13 +1123,11 @@
     await handleDashboard();
     await renderPublicPosts();
     await renderSectionPosts();
-    await renderLabMembers();
-    await renderAlumni();
+    await Promise.all([renderLabMembers(), renderAlumni()]);
     await renderPublicationDB();
     await applyBg();
     window.addEventListener('lab-language-change', async function(){
-      await renderLabMembers();
-      await renderAlumni();
+      await Promise.all([renderLabMembers(), renderAlumni()]);
     });
   });
   applyTranslations(document.body||document);
