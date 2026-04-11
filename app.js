@@ -538,8 +538,13 @@
       all=getCachedPosts();
       setStatus(st,'');
     }
-    var latest=all.filter(function(p){return p.section!=='news';}).slice(0,3);
-    var newsPosts=all.filter(function(p){return p.section==='news';}).slice(0,5);
+    function isNewsPost(p){
+      var sec=String((p&&p.section)||'').trim().toLowerCase();
+      var cat=String((p&&p.category)||'').trim().toLowerCase();
+      return sec==='news' || cat==='news' || cat==='뉴스';
+    }
+    var latest=all.filter(function(p){return !isNewsPost(p);}).slice(0,3);
+    var newsPosts=all.filter(isNewsPost).slice(0,5);
     if(c){
       renderLatestPosts(c,latest,'아직 업로드된 글이 없습니다.');
       c.classList.remove('latest-home-grid','latest-strip','post-strip','gallery-grid');
