@@ -513,38 +513,149 @@
     el.addEventListener('mouseleave',function(){isDown=false;el.classList.remove('dragging');});
     el.addEventListener('mousemove',function(e){if(!isDown)return;e.preventDefault();var x=e.pageX-el.offsetLeft;var walk=(x-startX)*1.2;el.scrollLeft=scrollLeft-walk;});
   }
+  var POSTS_CACHE_KEY='lab_posts_cache';
+  var NEWS_CACHE_KEY='lab_news_cache';
+  var NEWS_PENDING_KEY='lab_news_pending';
+
+  function normalizeTextValue(v){
+    return String(v==null?'':v).trim();
+  }
+  function normalizeSectionValue(v){
+    v=normalizeTextValue(v).toLowerCase();
+    if(v==='boards') return 'board';
+    return v;
+  }
+  function normalizeCategoryValue(v){
+    return normalizeTextValue(v);
+  }
+  function normalizePostRecord(post){
+    post=post||{};
+    return {
+      id:post.id,
+      title:normalizeTextValue(post.title),
+      body:normalizeTextValue(post.body),
+      image_url:post.image_url||null,
+      image_path:post.image_path||null,
+      created_at:post.created_at||null,
+      author_name:normalizeTextValue(post.author_name),
+      user_id:post.user_id||null,
+      section:normalizeSectionValue(post.section),
+      category:normalizeCategoryValue(post.category)
+    };
+  }
+  function postIdentity(post){
+    post=normalizePostRecord(post);
+    return post.id?('id:'+post.id):['title:'+post.title,'body:'+post.body,'section:'+post.section,'category:'+post.category,'created:'+post.created_at].join('|');
+  }
+  function mergePosts(){
+    var map={};
+    Array.prototype.slice.call(arguments).forEach(function(list){
+      (list||[]).forEach(function(post){
+        var normalized=normalizePostRecord(post);
+        if(!normalized.title&&!normalized.body&&!normalized.section&&!normalized.id)return;
+        map[postIdentity(normalized)]=normalized;
+      });
+    });
+    return Object.keys(map).map(function(key){ return map[key]; }).sort(function(a,b){
+      return new Date(b.created_at||0).getTime()-new Date(a.created_at||0).getTime();
+    });
+  }
   function cachePosts(posts){
-    try{localStorage.setItem('lab_posts_cache', JSON.stringify(posts||[]));}catch(e){}
+    try{localStorage.setItem(POSTS_CACHE_KEY, JSON.stringify(mergePosts(posts||[])));}catch(e){}
   }
   function getCachedPosts(){
-    try{return JSON.parse(localStorage.getItem('lab_posts_cache')||'[]');}catch(e){return [];}
+    try{return mergePosts(JSON.parse(localStorage.getItem(POSTS_CACHE_KEY)||'[]'));}catch(e){return [];}
+  }
+  function cacheNewsPosts(posts){
+    try{localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify(mergePosts(posts||[]).filter(function(p){return normalizeSectionValue(p.section)==='news';})));}catch(e){}
+  }
+  function getCachedNewsPosts(){
+    try{return mergePosts(JSON.parse(localStorage.getItem(NEWS_CACHE_KEY)||'[]'));}catch(e){return [];}
+  }
+  function savePendingNews(posts){
+    try{localStorage.setItem(NEWS_PENDING_KEY, JSON.stringify(mergePosts(posts||[]).filter(function(p){return normalizeSectionValue(p.section)==='news';})));}catch(e){}
+  }
+  function getPendingNews(){
+    try{return mergePosts(JSON.parse(localStorage.getItem(NEWS_PENDING_KEY)||'[]'));}catch(e){return [];}
+  }
+  function clearPendingNewsMatching(posts){
+    var pending=getPendingNews();
+    if(!pending.length)return;
+    var resolved={};
+    (posts||[]).forEach(function(post){ resolved[postIdentity(post)]=true; });
+    savePendingNews(pending.filter(function(post){ return !resolved[postIdentity(post)]; }));
+  }
+  function cachePublicPosts(posts){
+    var normalized=mergePosts(posts||[]);
+    cachePosts(normalized);
+    cacheNewsPosts(normalized);
+    clearPendingNewsMatching(normalized.filter(function(p){return normalizeSectionValue(p.section)==='news';}));
+  }
+  function rememberNewsPost(post){
+    var normalized=normalizePostRecord(post);
+    if(normalizeSectionValue(normalized.section)!=='news')normalized.section='news';
+    savePendingNews(mergePosts(getPendingNews(), [normalized]));
+    cachePublicPosts(mergePosts(getCachedPosts(), [normalized]));
+  }
+  async function fetchPostsFlexible(){
+    var baseSelect='id,title,body,image_url,image_path,created_at,author_name,user_id,section,category';
+    var result={ all:[], latest:[], news:[], source:'cache', message:'' };
+    if(!sb){
+      var cachedOnly=mergePosts(getCachedPosts(), getCachedNewsPosts(), getPendingNews());
+      result.all=cachedOnly;
+      result.latest=cachedOnly.filter(function(p){return normalizeSectionValue(p.section)!=='news';}).slice(0,3);
+      result.news=cachedOnly.filter(function(p){return normalizeSectionValue(p.section)==='news';}).slice(0,5);
+      result.message='';
+      return result;
+    }
+    var errors=[];
+    try{
+      var r=await sb.from('posts').select(baseSelect).order('created_at',{ascending:false});
+      if(r.error) throw r.error;
+      var all=mergePosts(r.data||[], getPendingNews());
+      cachePublicPosts(all);
+      result.all=all;
+      result.latest=all.filter(function(p){return normalizeSectionValue(p.section)!=='news';}).slice(0,3);
+      result.news=all.filter(function(p){return normalizeSectionValue(p.section)==='news';}).slice(0,5);
+      result.source='remote-all';
+      return result;
+    }catch(err){ errors.push(err&&err.message?err.message:String(err)); }
+    var cached=getCachedPosts();
+    var newsMerged=mergePosts(getCachedNewsPosts(), getPendingNews());
+    try{
+      var newsRes=await sb.from('posts').select(baseSelect).eq('section','news').order('created_at',{ascending:false}).limit(5);
+      if(newsRes.error) throw newsRes.error;
+      var latestRes=await sb.from('posts').select(baseSelect).neq('section','news').order('created_at',{ascending:false}).limit(3);
+      if(latestRes.error) throw latestRes.error;
+      var merged=mergePosts(latestRes.data||[], newsRes.data||[], cached, getPendingNews());
+      cachePublicPosts(merged);
+      result.all=merged;
+      result.latest=mergePosts(latestRes.data||[]).slice(0,3);
+      result.news=mergePosts(newsRes.data||[], newsMerged).slice(0,5);
+      result.source='remote-split';
+      result.message='일부 조회 경로를 우회해 게시물을 표시했습니다.';
+      return result;
+    }catch(err2){ errors.push(err2&&err2.message?err2.message:String(err2)); }
+    var fallback=mergePosts(cached, newsMerged);
+    result.all=fallback;
+    result.latest=fallback.filter(function(p){return normalizeSectionValue(p.section)!=='news';}).slice(0,3);
+    result.news=fallback.filter(function(p){return normalizeSectionValue(p.section)==='news';}).slice(0,5);
+    result.source='cache';
+    result.message=result.news.length||result.latest.length?'온라인 게시물을 불러오지 못해 저장된 게시물을 표시합니다.':'온라인 게시물을 불러오지 못했습니다. '+errors.filter(Boolean).join(' / ');
+    return result;
   }
 
   async function renderPublicPosts(){
     var c=byId('public-post-list'),n=byId('news-post-list'),st=byId('public-post-status');if(!c&&!n)return;
-    var all=[];
-    if(sb){
-      try{
-        var r=await sb.from('posts').select('id,title,body,image_url,image_path,created_at,author_name,section,category').order('created_at',{ascending:false});
-        if(r.error) throw r.error;
-        all=r.data||[];
-        cachePosts(all);
-        setStatus(st,'');
-      }catch(err){
-        all=getCachedPosts();
-        setStatus(st, all.length ? '온라인 게시물을 불러오지 못해 저장된 게시물을 표시합니다.' : (err.message||'Failed to fetch'),'error');
-      }
-    }else{
-      all=getCachedPosts();
-      setStatus(st,'');
+    var fetched=await fetchPostsFlexible();
+    console.log('[NEWS-DEBUG] source:'+fetched.source+' newsCount:'+fetched.news.length+' allCount:'+fetched.all.length+' sections:'+fetched.all.map(function(p){return p.section;}).join(','));
+    console.log('[NEWS-DEBUG] newsPosts:', JSON.stringify(fetched.news));
+    var latest=fetched.latest||[];
+    var newsPosts=fetched.news||[];
+    if(st){
+      if(fetched.message)setStatus(st,fetched.message,fetched.source==='cache'?'error':'success');
+      else setStatus(st,'');
     }
-    function isNewsPost(p){
-      var sec=String((p&&p.section)||'').trim().toLowerCase();
-      var cat=String((p&&p.category)||'').trim().toLowerCase();
-      return sec==='news' || cat==='news' || cat==='뉴스';
-    }
-    var latest=all.filter(function(p){return !isNewsPost(p);}).slice(0,3);
-    var newsPosts=all.filter(isNewsPost).slice(0,5);
     if(c){
       renderLatestPosts(c,latest,'아직 업로드된 글이 없습니다.');
       c.classList.remove('latest-home-grid','latest-strip','post-strip','gallery-grid');
@@ -556,8 +667,9 @@
       if(!newsPosts.length){n.innerHTML='<div class="news-item empty">등록된 뉴스가 없습니다.</div>';}
       else{
         n.innerHTML=newsPosts.map(function(post){
-          var href=/^https?:\/\//.test((post.body||'').trim())?(post.body||'').trim():'#';
-          return '<a class="news-item" href="'+href+'"><span class="news-title">'+escapeHtml(post.title||'Untitled')+'</span><span class="news-date">'+fmtDate(post.created_at)+'</span></a>';
+          var href=normalizeTextValue(post.body);
+          var safeHref=/^https?:\/\//i.test(href)?href:'#';
+          return '<a class="news-item" href="'+safeHref+'" target="_blank" rel="noopener noreferrer"><span class="news-title">'+escapeHtml(post.title||'Untitled')+'</span><span class="news-date">'+fmtDate(post.created_at)+'</span></a>';
         }).join('');
       }
     }
@@ -578,16 +690,17 @@
           if(r.error) throw r.error;
           rows=r.data||[];
         }catch(err){
-          rows=cachedAll.filter(function(p){return p.section===sec && (!cat || p.category===cat);});
+          rows=cachedAll.filter(function(p){return normalizeSectionValue(p.section)===normalizeSectionValue(sec) && (!cat || normalizeCategoryValue(p.category)===normalizeCategoryValue(cat));});
           fallbackUsed=true;
           setStatus(st, rows.length ? '온라인 게시물을 불러오지 못해 저장된 게시물을 표시합니다.' : (err.message||'Failed to fetch'),'error');
         }
       }else{
-        rows=cachedAll.filter(function(p){return p.section===sec && (!cat || p.category===cat);});
+        rows=cachedAll.filter(function(p){return normalizeSectionValue(p.section)===normalizeSectionValue(sec) && (!cat || normalizeCategoryValue(p.category)===normalizeCategoryValue(cat));});
         fallbackUsed=rows.length>0;
       }
-      renderPosts(c,rows,cat?cat+' 글이 없습니다.':(sec==='gallery'?tr('갤러리'):tr('게시판'))+' 글이 없습니다.');
-      if(sec==='gallery'){
+      rows=mergePosts(rows);
+      renderPosts(c,rows,cat?cat+' 글이 없습니다.':(normalizeSectionValue(sec)==='gallery'?tr('갤러리'):tr('게시판'))+' 글이 없습니다.');
+      if(normalizeSectionValue(sec)==='gallery'){
         c.classList.remove('post-strip');
         c.classList.add('gallery-grid');
       }
@@ -726,11 +839,64 @@
       if(r.error){setStatus(authSt,r.error.message,'error');return;}
       var uid=user.id||user.sub;
       var posts=r.data||[];
-      list.innerHTML=posts.length?posts.map(function(p){return renderPostCard(p,true,String(p.user_id)===String(uid));}).join(''):'<article class="panel post-card"><p>아직 업로드된 글이 없습니다.</p></article>';
-      qsa('[data-delete]',list).forEach(function(btn){btn.addEventListener('click',async function(){if(!confirm('삭제할까요?'))return;var del=await sb.from('posts').delete().eq('id',btn.dataset.delete).eq('user_id',uid);if(del.error){setStatus(authSt,del.error.message,'error');return;}if(editId&&editId.value===btn.dataset.delete)resetPostForm();setStatus(authSt,'게시물을 삭제했습니다.','success');await loadPosts();});
-    if(newsForm)newsForm.addEventListener('submit',async function(e){e.preventDefault();var title=byId('news-title').value.trim(),body=byId('news-body').value.trim(),link=byId('news-link').value.trim();if(!title){setStatus(authSt,'뉴스 제목을 입력하세요.','error');return;}var auth=await sb.auth.getUser(),user=auth&&auth.data?auth.data.user:null;if(auth.error||!user||!user.id){setStatus(authSt,'로그인 정보를 확인할 수 없습니다. 다시 로그인 후 시도하세요.','error');return;}var payload={title:title,body:(link||body||''),author_name:'Admin',user_id:user.id,section:'news',category:tr('News')};var res=await sb.from('posts').insert(payload);if(res.error){setStatus(authSt,res.error.message,'error');return;}newsForm.reset();setStatus(authSt,'뉴스를 업로드했습니다.','success');await loadPosts();});});
-      qsa('[data-edit]',list).forEach(function(btn){btn.addEventListener('click',function(){var post=posts.find(function(p){return String(p.id)===String(btn.dataset.edit);});if(post)enterEditMode(post);});});
+      posts=mergePosts(posts);
+      cachePublicPosts(posts);
+      list.innerHTML=posts.length?posts.map(function(p){return renderPostCard(p,true,String(p.user_id)===String(uid));}).join(''):'<article class="panel post-card"><p>아직 업로드된 글이 없습니다.</p></article>'; 
+      qsa('[data-delete]',list).forEach(function(btn){
+        btn.addEventListener('click',async function(){
+          if(!confirm('삭제할까요?'))return;
+          var del=await sb.from('posts').delete().eq('id',btn.dataset.delete).eq('user_id',uid);
+          if(del.error){setStatus(authSt,del.error.message,'error');return;}
+          if(editId&&editId.value===btn.dataset.delete)resetPostForm();
+          setStatus(authSt,'게시물을 삭제했습니다.','success');
+          await loadPosts();
+        });
+      });
+      qsa('[data-edit]',list).forEach(function(btn){
+        btn.addEventListener('click',function(){
+          var post=posts.find(function(p){return String(p.id)===String(btn.dataset.edit);});
+          if(post)enterEditMode(post);
+        });
+      });
     }
+    if(newsForm)newsForm.addEventListener('submit',async function(e){
+      e.preventDefault();
+      var title=normalizeTextValue(byId('news-title').value);
+      var link=normalizeTextValue(byId('news-link').value);
+      if(!title){setStatus(authSt,'뉴스 제목을 입력하세요.','error');return;}
+      if(!/^https?:\/\//i.test(link)){setStatus(authSt,'뉴스 링크를 입력하세요.','error');return;}
+      var payload={
+        title:title,
+        body:link,
+        author_name:(localName(user.email)||user.email||'admin'),
+        user_id:user.id||user.sub,
+        section:'news',
+        category:'News'
+      };
+      try{
+        setStatus(authSt,'뉴스 업로드 중...');
+        var created=null;
+        var res=await sb.from('posts').insert([payload]).select('id,title,body,image_url,image_path,created_at,author_name,user_id,section,category').single();
+        if(res.error){
+          var retry=await sb.from('posts').insert([payload]);
+          if(retry.error) throw retry.error;
+          var lookup=await sb.from('posts').select('id,title,body,image_url,image_path,created_at,author_name,user_id,section,category').eq('user_id',payload.user_id).eq('section','news').eq('title',payload.title).order('created_at',{ascending:false}).limit(1);
+          if(!lookup.error&&lookup.data&&lookup.data.length) created=lookup.data[0];
+          else created=Object.assign({created_at:new Date().toISOString()}, payload);
+        }else{
+          created=res.data||res;
+        }
+        created=normalizePostRecord(created||payload);
+        created.section='news';
+        rememberNewsPost(created);
+        newsForm.reset();
+        setStatus(authSt,'뉴스를 업로드했습니다.','success');
+        await loadPosts();
+        await renderPublicPosts();
+      }catch(err){
+        setStatus(authSt,(err&&err.message)||String(err),'error');
+      }
+    });
     await loadPosts();
     if(form)form.addEventListener('submit',async function(e){
       e.preventDefault();
