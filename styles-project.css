@@ -1,0 +1,39 @@
+.project-list-wrap {display: flex; flex-direction: column; gap: 30px}
+.project-stack {display: flex; flex-direction: column; gap: 28px}
+.project-list-card {padding: 22px 26px 24px; border-radius: 26px}
+.project-list-head {display: flex; align-items: center; gap: 12px; margin-bottom: 18px}
+.project-list-marker {flex: 0 0 auto; width: 14px; height: 14px; margin-left: 2px; border-left: 2px solid #738ba6; border-bottom: 2px solid #738ba6; transform: rotate(45deg)}
+.project-list-head h3 {margin: 0; font-size: 1.28rem; line-height: 1.38}
+.project-list-body {display: grid; grid-template-columns: minmax(520px, 1.18fr) minmax(0, 1fr); gap: 30px; align-items: start}
+.project-list-media {display: flex; align-items: stretch; justify-content: center; overflow: hidden; padding: 10px 12px; border: 1px solid var(--line); border-radius: 24px; background: linear-gradient(180deg,#f7fbff 0%,#eef4fa 100%); min-height: 300px; box-shadow: inset 0 1px 0 rgba(255,255,255,.6)}
+.project-list-media img {display: block; width: 100%; max-width: 100%; height: 100%; object-fit: contain; object-position: center; border-radius: 16px}
+.project-list-copy {padding-top: 2px}
+.project-list-copy p {margin: 0 0 12px; color: var(--muted); font-size: 1rem; line-height: 1.82}
+.project-list-copy p:last-child {margin-bottom: 0}
+
+.project-card-compact-media .project-list-body {grid-template-columns: minmax(470px, 1.02fr) minmax(0, 1fr); gap: 26px}
+.project-card-compact-media .project-list-media {min-height: 270px}
+.project-card-compact-media .project-list-media img {width: 90%; margin: 0 auto}
+
+.project-card-wide-media .project-list-body {display: flex; flex-direction: column; gap: 18px}
+.project-card-wide-media .project-list-media {min-height: 0; padding: 12px 14px}
+.project-card-wide-media .project-list-media img {width: 100%; height: auto; max-height: none; object-fit: contain; object-position: center top}
+.project-card-wide-media .project-list-copy {padding-top: 0}
+
+@media (max-width: 1100px) {
+  .project-list-body {grid-template-columns: minmax(430px, 1.05fr) minmax(0,1fr); gap: 22px}
+  .project-list-media {min-height: 270px}
+  .project-list-media img {height: 100%}
+  .project-card-compact-media .project-list-body {grid-template-columns: minmax(390px, 1fr) minmax(0, 1fr)}
+  .project-card-wide-media .project-list-body {display: flex; flex-direction: column}
+  .project-card-wide-media .project-list-media {min-height: 0}
+  .project-card-wide-media .project-list-media img {height: auto}
+}
+@media (max-width: 920px) {
+  .project-list-card {padding: 20px 22px 22px}
+  .project-list-body, .project-card-compact-media .project-list-body {grid-template-columns: 1fr; gap: 20px}
+  .project-list-media {min-height: 240px; padding: 10px 12px}
+  .project-list-media img {height: auto}
+  .project-card-compact-media .project-list-media img {width: 100%}
+  .project-card-wide-media .project-list-media {padding: 10px 12px}
+}
