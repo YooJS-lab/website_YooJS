@@ -6,8 +6,7 @@
   var LANG_KEY='lab_site_lang';
   var currentLang=(function(){
     try{return localStorage.getItem(LANG_KEY)||'ko';}catch(e){return 'ko';}
-  })();
-
+  
   var TEXT_MAP={
     '숙주-바이러스 면역동력학 연구실':'Host-Virus Immunodynamics Laboratory',
     '숙주 바이러스 면역동력학 연구실':'Host-Virus Immunodynamics Laboratory',
@@ -153,10 +152,6 @@
     '졸업생 추가':'Add Alumni',
     '등록된 멤버가 없습니다.':'No members have been registered.',
     '등록된 졸업생이 없습니다.':'No alumni have been registered.',
-    '석사과정생':'MS course',
-    '박사과정생':'PhD course',
-    '박사후과정생':'Postdoctoral researcher',
-    '학부연구생':'Undergraduate researcher',
     '학부연구원':'Undergraduate researcher',
     '졸업생':'Alumni',
     'Board':'Board',
@@ -251,7 +246,7 @@
     qsa('*',root).forEach(function(el){
       ['placeholder','alt','title','aria-label'].forEach(function(attr){
         if(!el.hasAttribute || !el.hasAttribute(attr)) return;
-        var k='i18nOrig'+attr.charAt(0).toUpperCase()+attr.slice(1);
+        var k='i18nOrig'+attr.replace(/-([a-z])/g,function(m,c){return c.toUpperCase();}).charAt(0).toUpperCase()+attr.replace(/-([a-z])/g,function(m,c){return c.toUpperCase();}).slice(1);
         if(!el.dataset[k]) el.dataset[k]=el.getAttribute(attr);
         el.setAttribute(attr, currentLang==='en' ? tr(el.dataset[k]) : el.dataset[k]);
       });
@@ -282,7 +277,6 @@
   var forcedLang=((document.body&&document.body.getAttribute('data-force-lang'))||document.documentElement.getAttribute('data-force-lang')||'').trim();
   if(forcedLang){
     currentLang = forcedLang==='en' ? 'en' : 'ko';
-    try{localStorage.setItem(LANG_KEY,currentLang);}catch(e){}
   }
   document.documentElement.lang=currentLang;
   document.body && document.body.setAttribute('data-lang', currentLang);
@@ -648,8 +642,6 @@
   async function renderPublicPosts(){
     var c=byId('public-post-list'),n=byId('news-post-list'),st=byId('public-post-status');if(!c&&!n)return;
     var fetched=await fetchPostsFlexible();
-    console.log('[NEWS-DEBUG] source:'+fetched.source+' newsCount:'+fetched.news.length+' allCount:'+fetched.all.length+' sections:'+fetched.all.map(function(p){return p.section;}).join(','));
-    console.log('[NEWS-DEBUG] newsPosts:', JSON.stringify(fetched.news));
     var latest=fetched.latest||[];
     var newsPosts=fetched.news||[];
     if(st){
@@ -662,7 +654,6 @@
       c.classList.add('latest-carousel');
       enableHorizontalDrag(c);
     }
-    applyTranslations(document.body||document);
     if(n){
       if(!newsPosts.length){n.innerHTML='<div class="news-item empty">등록된 뉴스가 없습니다.</div>';}
       else{
@@ -1048,18 +1039,14 @@
     if(r.error){grid.innerHTML='<p style="color:#a44236">'+escapeHtml(r.error.message||'멤버 정보를 불러오지 못했습니다.')+'</p>';return;}
     var rows=(r.data||[]).filter(function(m){ return !isAlumniRecord(m); });
     if(!rows.length){grid.innerHTML='<p style="color:var(--muted)">등록된 멤버가 없습니다.</p>';return;}
-    grid.innerHTML=rows.map(function(m){
-      return memberCardHtml(m);
-    }).join('');
+    grid.innerHTML=rows.map(memberCardHtml).join('');
   }
   async function renderAlumni(){
     var grid=byId('alumni-grid');if(!grid)return;
     if(!sb){grid.innerHTML='<p style="color:var(--muted)">Supabase 연결이 필요합니다.</p>';return;}
     var r=await fetchAllMemberRows();
     if(r.error){grid.innerHTML='<p style="color:#a44236">'+escapeHtml(r.error.message||'멤버 정보를 불러오지 못했습니다.')+'</p>';return;}
-    var rows=(r.data||[]).filter(isAlumniRecord).map(function(m){
-      return m;
-    });
+    var rows=(r.data||[]).filter(isAlumniRecord);
     if(!rows.length){grid.innerHTML='<p style="color:var(--muted)">등록된 졸업생이 없습니다.</p>';return;}
     grid.innerHTML=rows.map(memberCardHtml).join('');
   }
@@ -1133,14 +1120,11 @@
     await handleDashboard();
     await renderPublicPosts();
     await renderSectionPosts();
-    await renderLabMembers();
-    await renderAlumni();
+    await Promise.all([renderLabMembers(), renderAlumni()]);
     await renderPublicationDB();
     await applyBg();
     window.addEventListener('lab-language-change', async function(){
-      await renderLabMembers();
-      await renderAlumni();
+      await Promise.all([renderLabMembers(), renderAlumni()]);
     });
   });
-  applyTranslations(document.body||document);
 })();
