@@ -1093,7 +1093,8 @@
     }
 
     function bind(scope){
-      qsa('.admin-member-card',scope).forEach(function(card){
+      var cards=(scope&&scope.classList&&scope.classList.contains('admin-member-card'))?[scope]:qsa('.admin-member-card',scope);
+      cards.forEach(function(card){
         var st=card.querySelector('.admin-card-status');
 
         // 사진 선택 버튼 → file input 클릭
