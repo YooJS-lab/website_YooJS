@@ -339,7 +339,7 @@
 
   async function uploadFile(path,file){
     if(!sb)throw new Error('Supabase 미연결');
-    var up=await sb.storage.from('lab-media').upload(path,file,{upsert:false});
+    var up=await sb.storage.from('lab-media').upload(path,file,{upsert:true});
     if(up.error)throw up.error;
     return sb.storage.from('lab-media').getPublicUrl(path).data.publicUrl;
   }
@@ -1003,14 +1003,169 @@
     root.innerHTML='<p style="color:var(--muted)">불러오는 중...</p>';
     var CURRENT_YEAR=(new Date()).getFullYear();
     var YEAR_OPTIONS=[]; for(var y=CURRENT_YEAR+1;y>=2000;y--){YEAR_OPTIONS.push(String(y));}
-    async function uploadPhoto(file){var ext=(file.name.split('.').pop()||'jpg').toLowerCase();var path='members/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;return await uploadFile(path,file);}
-    function optionHtml(items,selected,placeholder){var html=placeholder?'<option value="">'+placeholder+'</option>':'';return html+items.map(function(v){return '<option value="'+escapeHtml(v.value)+'"'+(String(selected||'')===String(v.value)?' selected':'')+'>'+escapeHtml(v.ko)+'</option>';}).join('');}
-    function cardHtml(m,forcedType){m=m||{};var kind=forcedType||inferMemberKind(m);var isAlumni=kind==='alumni';var isNew=!m.id;var normalizedRole=normalizeRoleCode(m.role,kind);return '<div class="admin-member-card panel compact-admin-card" data-id="'+(m.id||'')+'" data-member-kind="'+kind+'"><div class="admin-member-top"><div class="admin-member-photo-col"><div class="admin-photo-preview admin-photo-preview-sm">'+(m.photo_url?'<img src="'+escapeHtml(m.photo_url)+'" style="width:100%;height:100%;object-fit:cover" alt="">':(m.name?escapeHtml(m.name[0]):'?'))+'</div><input type="file" accept="image/*" class="file-input admin-photo-input admin-photo-input-sm"></div><div class="admin-member-fields compact-admin-grid"><div class="admin-field-span"><label class="admin-label">이름 *</label><input type="text" class="input admin-name" value="'+escapeHtml(m.name||'')+'" placeholder="홍길동"></div><div><label class="admin-label">구분</label><input type="text" class="input" value="'+(isAlumni?'Alumni':'Member')+'" readonly></div><div><label class="admin-label">역할</label><select class="input admin-role">'+optionHtml(roleOptions(kind),normalizedRole||'', '미선택')+'</select></div><div><label class="admin-label">'+(isAlumni?'현재 소속':'소속')+'</label><input type="text" class="input admin-position" value="'+escapeHtml(isAlumni?(m.current_position||''):MEMBER_LAB)+'" '+(isAlumni?'':'readonly')+'></div>'+(isAlumni?'<div><label class="admin-label">졸업 연도</label><select class="input admin-grad-year">'+optionHtml(YEAR_OPTIONS.map(function(y){return {value:y,ko:y};}),m.graduation_year,'미선택')+'</select></div>':'<div><label class="admin-label">순서</label><input type="number" class="input admin-order" value="'+(m.display_order||0)+'"></div>')+(isAlumni?'<div><label class="admin-label">순서</label><input type="number" class="input admin-order" value="'+(m.display_order||0)+'"></div>':'')+'<div class="admin-field-span"><label class="admin-label">소개</label><textarea class="textarea admin-bio compact-admin-bio">'+escapeHtml(m.bio||'')+'</textarea></div></div></div><div class="admin-card-actions"><button class="button primary admin-save-btn" type="button">'+(isNew?'추가':'저장')+'</button>'+(isNew?'':'<button class="button admin-del-btn" style="border-color:#f0c4be;color:#a44236" type="button">삭제</button>')+'<span class="admin-card-status" style="font-size:.88rem;color:var(--muted)"></span></div></div>';}
-    async function renderMgmt(){var r=await sb.from('lab_members').select('*').order('display_order');if(r.error){root.innerHTML='<div class="panel card"><p style="color:#a44236">오류: '+escapeHtml(r.error.message)+'</p><p style="color:var(--muted);margin-top:8px">lab_members 테이블을 확인하세요.</p></div>';return;}var all=r.data||[],members=all.filter(function(m){return inferMemberKind(m)!=='alumni';}),alumni=all.filter(function(m){return inferMemberKind(m)==='alumni';});root.innerHTML='<div class="section-header compact-admin-head" style="margin-bottom:10px"><h2>Members</h2></div><div id="imgt-member-list" class="admin-card-grid">'+members.map(function(m){return cardHtml(m,'member');}).join('')+'</div><div id="imgt-new-member" class="admin-card-grid" style="margin-top:10px"></div><div class="admin-add-row"><button class="button primary" id="imgt-add-member">+ 멤버 추가</button></div><hr class="soft" style="margin:20px 0"><div class="section-header compact-admin-head" style="margin-bottom:10px"><h2>Alumni</h2></div><div id="imgt-alumni-list" class="admin-card-grid">'+alumni.map(function(m){return cardHtml(m,'alumni');}).join('')+'</div><div id="imgt-new-alumni" class="admin-card-grid" style="margin-top:10px"></div><div class="admin-add-row"><button class="button primary" id="imgt-add-alumni">+ 졸업생 추가</button></div>';bind(root);byId('imgt-add-member')&&byId('imgt-add-member').addEventListener('click',function(){var s=byId('imgt-new-member');s.insertAdjacentHTML('beforeend',cardHtml({member_type:'member',role:'',current_position:MEMBER_LAB},'member'));var card=s.lastElementChild?s.lastElementChild:s;bind(card);card&&card.scrollIntoView({behavior:'smooth',block:'end'});});byId('imgt-add-alumni')&&byId('imgt-add-alumni').addEventListener('click',function(){var s=byId('imgt-new-alumni');s.insertAdjacentHTML('beforeend',cardHtml({member_type:'alumni',role:'ms'},'alumni'));var card=s.lastElementChild?s.lastElementChild:s;bind(card);card&&card.scrollIntoView({behavior:'smooth',block:'end'});});}
-    function bind(scope){qsa('.admin-member-card',scope).forEach(function(card){var st=card.querySelector('.admin-card-status');card.querySelector('.admin-save-btn')&&card.querySelector('.admin-save-btn').addEventListener('click',async function(){var id=card.dataset.id,name=card.querySelector('.admin-name').value.trim(),kind=card.dataset.memberKind==='alumni'?'alumni':'member';if(!name){st.textContent='이름을 입력하세요.';st.style.color='#a44236';return;}st.textContent='저장 중...';st.style.color='var(--muted)';var photo_url=null,pf=card.querySelector('.admin-photo-input').files[0];if(pf){try{photo_url=await uploadPhoto(pf);}catch(e){st.textContent=e.message;st.style.color='#a44236';return;}}var payload={name:name,member_type:kind,role:normalizeRoleCode((card.querySelector('.admin-role').value||null),kind),current_position:kind==='alumni'?(card.querySelector('.admin-position').value.trim()||null):MEMBER_LAB,graduation_year:kind==='alumni'?((card.querySelector('.admin-grad-year')&&card.querySelector('.admin-grad-year').value)||null):null,bio:card.querySelector('.admin-bio').value.trim()||null,display_order:parseInt(card.querySelector('.admin-order').value)||0};if(photo_url)payload.photo_url=photo_url;var res=id?await sb.from('lab_members').update(payload).eq('id',id):await sb.from('lab_members').insert(payload);if(res.error){if(String(res.error.message||'').toLowerCase().indexOf('graduation_year')!==-1){st.textContent='graduation_year 컬럼이 필요합니다. zip 안의 SQL을 실행하세요.';st.style.color='#a44236';}else{st.textContent=res.error.message;st.style.color='#a44236';}}else{st.textContent='저장됨 ✓';st.style.color='#2f7a3f';await renderMgmt();}});card.querySelector('.admin-del-btn')&&card.querySelector('.admin-del-btn').addEventListener('click',async function(){if(!confirm('삭제할까요?'))return;await sb.from('lab_members').delete().eq('id',card.dataset.id);await renderMgmt();});var pi=card.querySelector('.admin-photo-input');if(pi)pi.addEventListener('change',function(e){var file=e.target.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(ev){card.querySelector('.admin-photo-preview').innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover" alt="">';};reader.readAsDataURL(file);});});}
+
+    async function uploadPhoto(file){
+      var ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+      var path='members/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
+      return await uploadFile(path,file);
+    }
+
+    function optionHtml(items,selected,placeholder){
+      var html=placeholder?'<option value="">'+placeholder+'</option>':'';
+      return html+items.map(function(v){
+        return '<option value="'+escapeHtml(v.value)+'"'+(String(selected||'')===String(v.value)?' selected':'')+'>'+escapeHtml(v.ko)+'</option>';
+      }).join('');
+    }
+
+    function cardHtml(m,forcedType){
+      m=m||{};
+      var kind=forcedType||inferMemberKind(m);
+      var isAlumni=kind==='alumni';
+      var isNew=!m.id;
+      var normalizedRole=normalizeRoleCode(m.role,kind);
+      var photoPreview=m.photo_url
+        ?'<img src="'+escapeHtml(m.photo_url)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">'
+        :(m.name?'<span style="font-size:1.4rem;color:var(--muted)">'+escapeHtml(m.name[0])+'</span>':'<span style="font-size:1.4rem;color:var(--muted)">?</span>');
+
+      return (
+        '<div class="admin-member-card panel compact-admin-card" data-id="'+(m.id||'')+'" data-member-kind="'+kind+'">'+
+          '<div class="admin-member-top">'+
+            '<div class="admin-member-photo-col">'+
+              '<div class="admin-photo-preview admin-photo-preview-sm" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#eef2f7;width:72px;height:72px;cursor:pointer" title="클릭하여 사진 변경">'+
+                photoPreview+
+              '</div>'+
+              '<input type="file" accept="image/*" class="file-input admin-photo-input" style="display:none">'+
+              '<button type="button" class="button muted-button admin-photo-btn" style="margin-top:6px;font-size:0.78rem;padding:3px 8px">사진 선택</button>'+
+            '</div>'+
+            '<div class="admin-member-fields compact-admin-grid">'+
+              '<div class="admin-field-span"><label class="admin-label">이름 *</label><input type="text" class="input admin-name" value="'+escapeHtml(m.name||'')+'" placeholder="홍길동"></div>'+
+              '<div><label class="admin-label">구분</label><input type="text" class="input" value="'+(isAlumni?'Alumni':'Member')+'" readonly></div>'+
+              '<div><label class="admin-label">역할</label><select class="input admin-role">'+optionHtml(roleOptions(kind),normalizedRole||'','미선택')+'</select></div>'+
+              '<div><label class="admin-label">'+(isAlumni?'현재 소속':'소속')+'</label><input type="text" class="input admin-position" value="'+escapeHtml(isAlumni?(m.current_position||''):MEMBER_LAB)+'" '+(isAlumni?'':'readonly')+'></div>'+
+              (isAlumni?'<div><label class="admin-label">졸업 연도</label><select class="input admin-grad-year">'+optionHtml(YEAR_OPTIONS.map(function(y){return{value:y,ko:y};}),m.graduation_year,'미선택')+'</select></div>':'')+
+              '<div><label class="admin-label">순서</label><input type="number" class="input admin-order" value="'+(m.display_order||0)+'"></div>'+
+              '<div class="admin-field-span"><label class="admin-label">소개</label><textarea class="textarea admin-bio compact-admin-bio">'+escapeHtml(m.bio||'')+'</textarea></div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="admin-card-actions">'+
+            '<button class="button primary admin-save-btn" type="button">'+(isNew?'추가':'저장')+'</button>'+
+            (isNew?'':'<button class="button admin-del-btn" style="border-color:#f0c4be;color:#a44236" type="button">삭제</button>')+
+            '<span class="admin-card-status" style="font-size:.88rem;color:var(--muted)"></span>'+
+          '</div>'+
+        '</div>'
+      );
+    }
+
+    async function renderMgmt(){
+      var r=await sb.from('lab_members').select('*').order('display_order');
+      if(r.error){
+        root.innerHTML='<div class="panel card"><p style="color:#a44236">오류: '+escapeHtml(r.error.message)+'</p><p style="color:var(--muted);margin-top:8px">lab_members 테이블을 확인하세요.</p></div>';
+        return;
+      }
+      var all=r.data||[];
+      var members=all.filter(function(m){return inferMemberKind(m)!=='alumni';});
+      var alumni=all.filter(function(m){return inferMemberKind(m)==='alumni';});
+      root.innerHTML=
+        '<div class="section-header compact-admin-head" style="margin-bottom:10px"><h2>Members</h2></div>'+
+        '<div id="imgt-member-list" class="admin-card-grid">'+members.map(function(m){return cardHtml(m,'member');}).join('')+'</div>'+
+        '<div id="imgt-new-member" class="admin-card-grid" style="margin-top:10px"></div>'+
+        '<div class="admin-add-row"><button class="button primary" id="imgt-add-member">+ 멤버 추가</button></div>'+
+        '<hr class="soft" style="margin:20px 0">'+
+        '<div class="section-header compact-admin-head" style="margin-bottom:10px"><h2>Alumni</h2></div>'+
+        '<div id="imgt-alumni-list" class="admin-card-grid">'+alumni.map(function(m){return cardHtml(m,'alumni');}).join('')+'</div>'+
+        '<div id="imgt-new-alumni" class="admin-card-grid" style="margin-top:10px"></div>'+
+        '<div class="admin-add-row"><button class="button primary" id="imgt-add-alumni">+ 졸업생 추가</button></div>';
+      bind(root);
+      byId('imgt-add-member')&&byId('imgt-add-member').addEventListener('click',function(){
+        var s=byId('imgt-new-member');
+        s.insertAdjacentHTML('beforeend',cardHtml({member_type:'member',role:'',current_position:MEMBER_LAB},'member'));
+        var card=s.lastElementChild;
+        bind(card);
+        card&&card.scrollIntoView({behavior:'smooth',block:'end'});
+      });
+      byId('imgt-add-alumni')&&byId('imgt-add-alumni').addEventListener('click',function(){
+        var s=byId('imgt-new-alumni');
+        s.insertAdjacentHTML('beforeend',cardHtml({member_type:'alumni',role:'ms'},'alumni'));
+        var card=s.lastElementChild;
+        bind(card);
+        card&&card.scrollIntoView({behavior:'smooth',block:'end'});
+      });
+    }
+
+    function bind(scope){
+      qsa('.admin-member-card',scope).forEach(function(card){
+        var st=card.querySelector('.admin-card-status');
+
+        // 사진 선택 버튼 → file input 클릭
+        var photoBtn=card.querySelector('.admin-photo-btn');
+        var photoInput=card.querySelector('.admin-photo-input');
+        var photoPreviewEl=card.querySelector('.admin-photo-preview');
+        if(photoBtn&&photoInput){
+          photoBtn.addEventListener('click',function(){photoInput.click();});
+          photoPreviewEl&&photoPreviewEl.addEventListener('click',function(){photoInput.click();});
+        }
+
+        // 사진 선택 시 미리보기
+        if(photoInput){
+          photoInput.addEventListener('change',function(e){
+            var file=e.target.files[0];
+            if(!file)return;
+            var reader=new FileReader();
+            reader.onload=function(ev){
+              if(photoPreviewEl) photoPreviewEl.innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">';
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        // 저장/추가 버튼
+        card.querySelector('.admin-save-btn')&&card.querySelector('.admin-save-btn').addEventListener('click',async function(){
+          var id=card.dataset.id;
+          var name=card.querySelector('.admin-name').value.trim();
+          var kind=card.dataset.memberKind==='alumni'?'alumni':'member';
+          if(!name){st.textContent='이름을 입력하세요.';st.style.color='#a44236';return;}
+          st.textContent='저장 중...';st.style.color='var(--muted)';
+          var photo_url=null;
+          var pf=photoInput&&photoInput.files[0];
+          if(pf){
+            try{photo_url=await uploadPhoto(pf);}
+            catch(e){st.textContent='사진 업로드 실패: '+e.message;st.style.color='#a44236';return;}
+          }
+          var orderInput=card.querySelector('.admin-order');
+          var payload={
+            name:name,
+            member_type:kind,
+            role:normalizeRoleCode((card.querySelector('.admin-role').value||null),kind),
+            current_position:kind==='alumni'?(card.querySelector('.admin-position').value.trim()||null):MEMBER_LAB,
+            graduation_year:kind==='alumni'?((card.querySelector('.admin-grad-year')&&card.querySelector('.admin-grad-year').value)||null):null,
+            bio:card.querySelector('.admin-bio').value.trim()||null,
+            display_order:orderInput?parseInt(orderInput.value)||0:0
+          };
+          if(photo_url) payload.photo_url=photo_url;
+          var res=id
+            ?await sb.from('lab_members').update(payload).eq('id',id)
+            :await sb.from('lab_members').insert(payload);
+          if(res.error){
+            st.textContent='오류: '+res.error.message;
+            st.style.color='#a44236';
+          }else{
+            st.textContent='저장됨 ✓';
+            st.style.color='#2f7a3f';
+            await renderMgmt();
+          }
+        });
+
+        // 삭제 버튼
+        card.querySelector('.admin-del-btn')&&card.querySelector('.admin-del-btn').addEventListener('click',async function(){
+          if(!confirm('삭제할까요?'))return;
+          await sb.from('lab_members').delete().eq('id',card.dataset.id);
+          await renderMgmt();
+        });
+      });
+    }
+
     renderMgmt();
   }
-
   function normalizeMemberRole(role,kind){
     return roleLabel(role,kind||'member',currentLang==='en'?'en':'ko');
   }
