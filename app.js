@@ -1168,7 +1168,7 @@
     return roleLabel(role,kind||'member',currentLang==='en'?'en':'ko');
   }
   function memberCardHtml(m){
-    var photoHtml=m.photo_url?'<div class="member-photo-wrap"><img src="'+escapeHtml(m.photo_url)+'" class="member-photo-img" alt="'+escapeHtml(m.name)+'"></div>':'<div class="member-photo-wrap member-photo-initial">'+escapeHtml((m.name||'?')[0])+'</div>';
+    var photoHtml=m.photo_url?'<div class="member-photo-wrap"><img src="'+escapeHtml(m.photo_url)+'" class="member-photo-img" alt="'+escapeHtml(m.name)+'"></div>':'<div class="member-photo-wrap"><div class="member-photo-initial">'+escapeHtml((m.name||'?')[0])+'</div></div>';
     var isAlumni=inferMemberKind(m)==='alumni';
     var roleLabelText=normalizeMemberRole(m.role,isAlumni?'alumni':'member');
     var title=escapeHtml(m.name||'')+(roleLabelText?' <span class="member-role-inline">('+escapeHtml(roleLabelText)+')</span>':'');
