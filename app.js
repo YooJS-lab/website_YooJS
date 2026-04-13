@@ -1023,6 +1023,7 @@
       var isAlumni=kind==='alumni';
       var isNew=!m.id;
       var normalizedRole=normalizeRoleCode(m.role,kind);
+      var uid='photo-'+Date.now()+'-'+Math.random().toString(36).slice(2);
       var photoPreview=m.photo_url
         ?'<img src="'+escapeHtml(m.photo_url)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="">'
         :(m.name?'<span style="font-size:1.4rem;color:var(--muted)">'+escapeHtml(m.name[0])+'</span>':'<span style="font-size:1.4rem;color:var(--muted)">?</span>');
@@ -1031,11 +1032,13 @@
         '<div class="admin-member-card panel compact-admin-card" data-id="'+(m.id||'')+'" data-member-kind="'+kind+'">'+
           '<div class="admin-member-top">'+
             '<div class="admin-member-photo-col">'+
-              '<div class="admin-photo-preview admin-photo-preview-sm" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#eef2f7;width:72px;height:72px;cursor:pointer" title="클릭하여 사진 변경">'+
-                photoPreview+
-              '</div>'+
-              '<input type="file" accept="image/*" class="file-input admin-photo-input" style="display:none">'+
-              '<button type="button" class="button muted-button admin-photo-btn" style="margin-top:6px;font-size:0.78rem;padding:3px 8px">사진 선택</button>'+
+              '<label for="'+uid+'" style="cursor:pointer;display:block">'+
+                '<div class="admin-photo-preview admin-photo-preview-sm" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;background:#eef2f7;width:72px;height:72px">'+
+                  photoPreview+
+                '</div>'+
+                '<div style="margin-top:6px;font-size:0.78rem;color:#0e5fa8;text-align:center;text-decoration:underline">사진 선택</div>'+
+              '</label>'+
+              '<input type="file" accept="image/*" id="'+uid+'" class="file-input admin-photo-input" style="display:none">'+
             '</div>'+
             '<div class="admin-member-fields compact-admin-grid">'+
               '<div class="admin-field-span"><label class="admin-label">이름 *</label><input type="text" class="input admin-name" value="'+escapeHtml(m.name||'')+'" placeholder="홍길동"></div>'+
@@ -1097,14 +1100,8 @@
       cards.forEach(function(card){
         var st=card.querySelector('.admin-card-status');
 
-        // 사진 선택 버튼 → file input 클릭
-        var photoBtn=card.querySelector('.admin-photo-btn');
         var photoInput=card.querySelector('.admin-photo-input');
         var photoPreviewEl=card.querySelector('.admin-photo-preview');
-        if(photoBtn&&photoInput){
-          photoBtn.addEventListener('click',function(){photoInput.click();});
-          photoPreviewEl&&photoPreviewEl.addEventListener('click',function(){photoInput.click();});
-        }
 
         // 사진 선택 시 미리보기
         if(photoInput){
