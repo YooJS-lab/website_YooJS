@@ -1172,9 +1172,10 @@
     var isAlumni=inferMemberKind(m)==='alumni';
     var roleLabelText=normalizeMemberRole(m.role,isAlumni?'alumni':'member');
     var title=escapeHtml(m.name||'')+(roleLabelText?' <span class="member-role-inline">('+escapeHtml(roleLabelText)+')</span>':'');
-    var yearChip=(isAlumni&&m.graduation_year)?'<p class="member-grad-year">Class of '+escapeHtml(String(m.graduation_year))+'</p>':'';
+    var yearChip=(isAlumni&&m.graduation_year)?'<span class="member-grad-chip">'+escapeHtml(String(m.graduation_year))+'</span>':'';
     var positionHtml=(isAlumni&&m.current_position)?'<p class="member-position">'+escapeHtml(m.current_position)+'</p>':'';
-    return '<article class="panel member-card">'+photoHtml+'<div class="member-info"><h3>'+title+'</h3>'+positionHtml+yearChip+(m.bio?'<p class="member-bio">'+escapeHtml(m.bio)+'</p>':'')+'</div></article>';
+    var cardClass='panel member-card'+(isAlumni?' member-card-alumni':'');
+    return '<article class="'+cardClass+'">'+photoHtml+'<div class="member-info"><h3>'+title+yearChip+'</h3>'+positionHtml+(m.bio&&!isAlumni?'<p class="member-bio">'+escapeHtml(m.bio)+'</p>':'')+'</div></article>';
   }
   function isAlumniRecord(m){
     return inferMemberKind(m)==='alumni';
