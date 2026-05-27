@@ -245,3 +245,27 @@ body[data-lang="en"] .brand-text small {
   }
 }
 
+
+/* ── 다중 이미지 그리드 ── */
+.post-multi-img {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  padding: 8px 0;
+}
+.multi-img-thumb {
+  display: block;
+  overflow: hidden;
+  border-radius: 6px;
+  aspect-ratio: 1 / 1;
+  background: #f0f4f8;
+}
+.multi-img-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+.multi-img-thumb:hover img {
+  transform: scale(1.04);
+}
