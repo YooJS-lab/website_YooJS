@@ -362,14 +362,6 @@
     }catch(e){return{};}
   }
 
-  function parseImageUrls(post){
-    var raw=post.image_url||'';
-    if(!raw) return [];
-    if(raw.charAt(0)==='['){
-      try{ var arr=JSON.parse(raw); if(Array.isArray(arr)) return arr.filter(Boolean); }catch(e){}
-    }
-    return [raw];
-  }
   function parseImageUrls(imageUrl){
     if(!imageUrl) return [];
     if(imageUrl.charAt(0)==='['){
