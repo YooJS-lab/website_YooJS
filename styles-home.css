@@ -1,5 +1,5 @@
 .latest-panel {overflow: hidden !important}
-.gallery-grid {display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 18px !important}
+.gallery-grid {display: grid !important; grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 18px !important; align-items: start !important}
 .gallery-grid > .post-card.section-gallery {display: flex !important; flex-direction: column !important; gap: 6px !important; width: 100% !important; min-width: 0 !important; height: auto !important; padding: 16px 18px 14px !important; overflow: hidden !important}
 .gallery-grid > .post-card.section-gallery .gallery-card-head {display: flex !important; flex-direction: column !important; gap: 4px !important}
 .gallery-grid > .post-card.section-gallery .gallery-card-title-row {display: grid !important; grid-template-columns: auto minmax(0,1fr) !important; align-items: center !important; gap: 10px !important}
