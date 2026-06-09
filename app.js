@@ -427,7 +427,7 @@
         '<img src="'+escapeHtml(u)+'" alt="" loading="lazy">'+
       '</button>';
     }).join('');
-    return '<div class="post-media-box post-media-carousel">'+
+    return '<div class="post-media-carousel">'+
       '<div class="lmc-wrap" id="'+pid+'">'+
         '<div class="lmc-stage">'+slides+'</div>'+
         '<button type="button" class="lmc-arrow lmc-prev" aria-label="이전">&#8249;</button>'+
