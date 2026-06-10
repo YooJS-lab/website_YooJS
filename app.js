@@ -414,7 +414,7 @@
       return '<div class="post-media-box file-box"><div class="file-note">첨부 파일</div><a href="'+escapeHtml(url)+'" target="_blank" rel="noopener" class="button">파일 열기</a></div>';
     }
     if(urls.length<=1){
-      return '<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener" class="post-media-box post-img-link"><img src="'+escapeHtml(url)+'" class="post-img" loading="lazy" alt="'+escapeHtml(post.title||'media')+'"></a>';
+      return '<a href="'+escapeHtml(url)+'" target="_blank" rel="noopener" class="post-img-link"><img src="'+escapeHtml(url)+'" class="post-img" loading="lazy" alt="'+escapeHtml(post.title||'media')+'"></a>';
     }
     var pid='pmc-'+Math.random().toString(36).slice(2,8);
     var slides=urls.map(function(u,i){
