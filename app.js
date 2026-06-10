@@ -434,7 +434,6 @@
         '<button type="button" class="lmc-arrow lmc-next" aria-label="다음">&#8250;</button>'+
         '<div class="lmc-counter"><span class="lmc-cur">1</span> / <span class="lmc-tot">'+urls.length+'</span></div>'+
       '</div>'+
-      '<div class="lmc-thumbs" data-for="'+pid+'">'+thumbs+'</div>'+
     '</div>';
   }
   function renderPostCard(post, canEdit, canDelete, mode){
