@@ -53,10 +53,9 @@ main {padding-bottom: 18px}
 .card-grid, .info-grid, .form-grid, .dashboard-grid, .post-grid, .member-grid {display: grid; gap: 22px}
 .card-grid, .dashboard-grid {grid-template-columns: repeat(2,minmax(0,1fr))}
 .info-grid {grid-template-columns: repeat(3,minmax(0,1fr))}
-.member-grid {grid-template-columns: repeat(3,minmax(0,1fr))}
-.card, .member-card, .form-panel, .dashboard-panel, .post-card {padding: 22px}
-.card h3, .member-card h3, .dashboard-panel h3, .post-card h3 {margin: 0 0 10px; font-size: 1.18rem}
-.card p, .member-card p, .dashboard-panel p, .post-card p {margin: 0; color: var(--muted)}
+.card, .form-panel, .dashboard-panel, .post-card {padding: 22px}
+.card h3, .dashboard-panel h3, .post-card h3 {margin: 0 0 10px; font-size: 1.18rem}
+.card p, .dashboard-panel p, .post-card p {margin: 0; color: var(--muted)}
 .meta-list {display: grid; gap: 8px; margin-top: 12px}
 .meta-list div {padding: 10px 12px; background: #f7fbff; border: 1px solid var(--line); border-radius: 14px}
 .badge {display: inline-block; padding: 6px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-dark); font-size: .84rem; font-weight: 900}
@@ -104,6 +103,10 @@ hr.soft {border: none; border-top: 1px solid var(--line); margin: 18px 0}
 .board-category-grid {grid-template-columns: repeat(3,minmax(0,1fr))}
 .background-row, .category-panel {padding: 18px}
 .background-row label {display: block; font-weight: 800; margin-bottom: 8px}
+.background-row .background-select {margin-bottom: 4px}
+.bg-upload-row {display: flex; flex-direction: column; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line)}
+.bg-upload-row .file-input {padding: 9px 10px; font-size: .88rem}
+.bg-upload-hint {font-size: .8rem; color: var(--muted); line-height: 1.4}
 .category-panel h3 {margin: 0 0 12px}
 .category-only .post-card {padding: 18px}
 @media (max-width: 920px) {
@@ -124,15 +127,6 @@ hr.soft {border: none; border-top: 1px solid var(--line); margin: 18px 0}
 .post-img-link:hover {box-shadow: 0 6px 24px rgba(16,40,70,.14)}
 .post-img {display: block; width: 100%; height: auto; max-height: 480px; object-fit: contain; background: #eef4fa; transition: transform .2s; max-width: 300px; border-radius: 12px}
 .post-img-link:hover .post-img {transform: scale(1.01)}
-.member-card {display: flex; flex-direction: column; padding: 0 !important; overflow: hidden; border-radius: 20px !important}
-.member-info {display: flex; flex-direction: column; gap: 4px !important; padding: 16px 18px 18px !important; align-items: flex-start !important}
-.member-info h3 {margin: 0 !important; font-size: 1.06rem !important; line-height: 1.45; padding: 0 !important}
-.member-info .badge {align-self: flex-start}
-.member-info p {margin: 2px 0 0; color: var(--muted); font-size: .9rem}
-.member-photo-wrap {width: 100%; overflow: hidden; background: linear-gradient(135deg,#dfeaf6,#f9fbff); border-bottom: 1px solid var(--line)}
-.member-photo-img {display: block; width: 100%; height: auto; object-fit: cover}
-.member-photo-initial {height: 160px; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; font-weight: 900; color: #6f8398}
-.member-position {font-size: .9rem !important; color: #355d7d !important; margin-top: 3px; font-weight: 700}
 .main-nav .auth-link {margin-left: 0; white-space: nowrap; flex-shrink: 0}
 .main-nav>a, .nav-item>a {white-space: nowrap; padding: 10px 12px}
 .post-layout {display: grid !important; gap: 16px !important; align-items: start !important; flex-wrap: wrap; grid-template-columns: minmax(0,1fr) 200px !important}
@@ -143,7 +137,6 @@ hr.soft {border: none; border-top: 1px solid var(--line); margin: 18px 0}
 .heic-box {padding: 14px; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; width: 200px; min-height: 140px; text-align: center}
 .heic-note {font-weight: 800; color: var(--muted)}
 .post-card p {line-height: 1.75}
-.member-role-inline {font-weight: 700; color: var(--muted)}
 .publication-controls {display: grid; grid-template-columns: 1.2fr .7fr .8fr .7fr auto; gap: 12px; align-items: end}
 .pub-card {padding: 22px; position: relative; overflow: hidden}
 .pub-card h3 {margin: 10px 0 8px; font-size: 1.16rem; line-height: 1.42}
@@ -167,7 +160,6 @@ hr.soft {border: none; border-top: 1px solid var(--line); margin: 18px 0}
 .post-action-row {display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px}
 .post-action-row .button {padding: 10px 14px}
 .pub-card::before {content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg,#214f83,#71a4da)}
-.member-bio {margin-top: 4px !important; font-size: .92rem; color: var(--muted)}
 #admin-nav-item {margin-left: auto}
 #admin-nav-item + .auth-link {margin-left: 0}
 @media (min-width:921px) {
@@ -180,7 +172,6 @@ hr.soft {border: none; border-top: 1px solid var(--line); margin: 18px 0}
 .category-panel .post-content {min-width: 0}
 .category-panel .post-content p {margin-top: 8px; white-space: normal; word-break: keep-all; overflow-wrap: anywhere}
 .post-content h3 {line-height: 1.4; word-break: keep-all; overflow-wrap: anywhere}
-.member-grad-year {margin-top: 7px !important; font-size: .88rem !important; font-weight: 700; color: #5d6d7e !important; padding: 0 !important; background: none !important; border: none !important; border-radius: 0 !important}
 @media (min-width:921px) {
   .main-nav {gap: 6px}
   .nav-item>a, .main-nav>a {padding: 10px 11px}

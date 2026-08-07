@@ -1055,12 +1055,39 @@
       try{
         var res=await Promise.all([getStorageImages(),loadBgMap()]);
         var images=res[0],bgMap=res[1];
+        function renderBgOptions(sel,curPath){
+          var opts=['<option value="">기본 배경 유지</option>'].concat(images.map(function(img){return'<option value="'+escapeHtml(img.path)+'"'+(img.path===curPath?' selected':'')+'>'+escapeHtml(img.name)+'</option>';}));
+          sel.innerHTML=opts.join('');
+        }
         bgMgr.innerHTML=BG_KEYS.map(function(item){
-          var cur=bgMap[item.key]?bgMap[item.key].image_path:'';
-          var opts=['<option value="">기본 배경 유지</option>'].concat(images.map(function(img){return'<option value="'+escapeHtml(img.path)+'"'+(img.path===cur?' selected':'')+'>'+escapeHtml(img.name)+'</option>';}));
-          return'<div class="background-row panel"><label for="bg-'+item.key+'">'+item.label+'</label><select class="input background-select" id="bg-'+item.key+'" data-bg-key="'+item.key+'">'+opts.join('')+'</select></div>';
+          return'<div class="background-row panel"><label for="bg-'+item.key+'">'+item.label+'</label><select class="input background-select" id="bg-'+item.key+'" data-bg-key="'+item.key+'"></select><div class="bg-upload-row"><input class="file-input bg-file-input" id="bg-file-'+item.key+'" type="file" accept="image/*" data-bg-key="'+item.key+'"><span class="bg-upload-hint">내 PC에서 이미지를 선택하면 업로드 후 바로 이 페이지 배경으로 지정됩니다.</span></div></div>';
         }).join('');
+        BG_KEYS.forEach(function(item){
+          var sel=byId('bg-'+item.key);
+          var cur=bgMap[item.key]?bgMap[item.key].image_path:'';
+          if(sel)renderBgOptions(sel,cur);
+        });
         qsa('.background-select',bgMgr).forEach(function(sel){sel.addEventListener('change',async function(){var key=sel.dataset.bgKey,path=sel.value;try{var uid=user.id||user.sub;if(!path){await sb.from('site_backgrounds').delete().eq('page_key',key);try{localStorage.removeItem('bg_cache_'+key);}catch(_e){}} else {var img=images.find(function(i){return i.path===path;});await sb.from('site_backgrounds').upsert({page_key:key,image_path:path,image_url:img?img.publicUrl:'',updated_by:uid},{onConflict:'page_key'});try{if(img&&img.publicUrl)localStorage.setItem('bg_cache_'+key,img.publicUrl);}catch(_e){}}setStatus(bgSt,'저장되었습니다.','success');}catch(err){setStatus(bgSt,err.message,'error');}});});
+        qsa('.bg-file-input',bgMgr).forEach(function(fi){fi.addEventListener('change',async function(){
+          var key=fi.dataset.bgKey,file=fi.files&&fi.files[0];
+          if(!file)return;
+          if(!/^image\//.test(file.type)){setStatus(bgSt,'이미지 파일만 업로드할 수 있습니다.','error');fi.value='';return;}
+          if(file.size>8*1024*1024){setStatus(bgSt,'이미지 용량은 8MB 이하로 올려주세요.','error');fi.value='';return;}
+          var sel=byId('bg-'+key);
+          try{
+            setStatus(bgSt,'이미지 업로드 중...','');
+            var ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+            var fpath='posts/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
+            var url=await uploadFile(fpath,file);
+            var uid=user.id||user.sub;
+            await sb.from('site_backgrounds').upsert({page_key:key,image_path:fpath,image_url:url,updated_by:uid},{onConflict:'page_key'});
+            try{localStorage.setItem('bg_cache_'+key,url);}catch(_e){}
+            images.unshift({path:fpath,publicUrl:url,name:file.name});
+            if(sel)renderBgOptions(sel,fpath);
+            setStatus(bgSt,'업로드한 이미지로 배경을 지정했습니다.','success');
+          }catch(err){setStatus(bgSt,err.message||String(err),'error');}
+          fi.value='';
+        });});
       }catch(err){setStatus(bgSt,err.message,'error');}
     }
   }
