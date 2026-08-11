@@ -554,59 +554,49 @@
       stage.addEventListener('touchend',function(e){ var dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>40) goTo(dx<0?cur+1:cur-1); },{passive:true});
     });
   }
-  // 가로 스크롤(스냅)은 그대로 두고, 컨테이너 높이만 "현재 보이는 카드"의
-  // 실제 콘텐츠 높이(사진 비율 + 글 길이)에 맞춰 JS로 갱신한다.
+  // 가로 스크롤(스냅)은 그대로 두고, 컨테이너 높이는 scrollLeft 위치에 맞춰
+  // 카드 사이를 실시간으로 보간한다. (이전엔 카드가 바뀌는 순간에만 높이를 갱신하고
+  // CSS transition으로 애니메이션을 걸었는데, 그러면 스크롤 도중 손가락/스크롤
+  // 움직임과 높이 변화 타이밍이 어긋나 뚝뚝 끊기듯 부자연스러웠음. 트랜지션을
+  // 빼고 스크롤 위치와 1:1로 붙여서 움직이면 가로 이동과 똑같이 자연스럽게 느껴짐)
   function initLatestCarouselHeight(container){
     if(!container) return;
-    function verticalPad(){
-      var cs=window.getComputedStyle(container);
-      return (parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
-    }
     function cardsOf(){
       var track=container.querySelector('.latest-track');
       return track?Array.from(track.children):[];
     }
-    function measure(idx){
+    var cs=window.getComputedStyle(container);
+    var pad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+    function update(){
       var cards=cardsOf();
-      var card=cards[idx]||cards[0];
-      return card?(card.scrollHeight+verticalPad()):0;
-    }
-    function activeIndex(){
-      var cards=cardsOf();
-      if(cards.length<=1) return 0;
+      var n=cards.length;
+      if(!n) return;
+      if(n===1){
+        container.style.height=(cards[0].scrollHeight+pad)+'px';
+        return;
+      }
       var w=container.clientWidth||1;
-      var idx=Math.round(container.scrollLeft/w);
-      return Math.max(0,Math.min(cards.length-1,idx));
+      var raw=container.scrollLeft/w;
+      var lo=Math.max(0,Math.min(n-1,Math.floor(raw)));
+      var hi=Math.max(0,Math.min(n-1,Math.ceil(raw)));
+      var t=Math.max(0,Math.min(1,raw-lo));
+      var hLo=cards[lo].scrollHeight, hHi=cards[hi].scrollHeight;
+      container.style.height=(hLo+(hHi-hLo)*t+pad)+'px';
     }
-    // 렌더 직후엔 애니메이션 없이 즉시 높이를 맞춘다 (재렌더 때도 매번 실행)
-    var idx0=activeIndex();
-    container.style.transition='none';
-    container.style.height=measure(idx0)+'px';
-    void container.offsetHeight;
-    container.style.transition='';
-
+    update();
     if(container.dataset.heightInit==='1') return;
     container.dataset.heightInit='1';
 
-    var lastIdx=idx0, raf=null;
+    var raf=null;
     container.addEventListener('scroll',function(){
       if(raf) return;
-      raf=requestAnimationFrame(function(){
-        raf=null;
-        var idx=activeIndex();
-        if(idx!==lastIdx){
-          lastIdx=idx;
-          container.style.height=measure(idx)+'px';
-        }
-      });
+      raf=requestAnimationFrame(function(){ raf=null; update(); });
     },{passive:true});
 
     var resizeTimer=null;
     window.addEventListener('resize',function(){
       clearTimeout(resizeTimer);
-      resizeTimer=setTimeout(function(){
-        container.style.height=measure(lastIdx)+'px';
-      },150);
+      resizeTimer=setTimeout(update,150);
     });
   }
   function renderLatestPosts(c, posts, empty){
