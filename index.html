@@ -34,11 +34,11 @@
         </div>
         <div class="hero-visual-card carousel-visual" id="home-research-carousel">
           <div class="hero-visual-frame carousel-frame">
-            <img id="carousel-image" src="slide-innate-signaling.png" alt="선천면역 반응 및 항바이러스 신호전달 기전 연구 figure">
+            <img id="carousel-image" src="slide-sarscov2-innate-evasion.png" alt="SARS-CoV-2 단백질에 의한 다단계 선천면역 신호전달 억제 개요도">
           </div>
           <div class="hero-visual-meta">
             <strong>Featured Figure</strong>
-            <span id="carousel-paper">The Innate Immune Viral Sensors and Their Functional Crosstalk</span>
+            <span id="carousel-paper">SARS-CoV-2 Antagonism of Innate Antiviral Signaling</span>
           </div>
           <div class="carousel-dots" id="carousel-dots" aria-label="대표 연구 figure 목록"></div>
         </div>
@@ -56,7 +56,7 @@
       </article>
       <article class="panel overview-card compact-citation-card">
         <div class="kicker" data-ko="대표 Figure" data-en="Representative Figure">대표 Figure</div>
-        <p class="tight" id="carousel-description">항바이러스 센서, IFN 유도, JAK-STAT 신호전달을 포함한 선천면역 반응 축을 요약한 대표 도식입니다.</p>
+        <p class="tight" id="carousel-description">PKR, RIG-I/MDA5-MAVS, TLR-MyD88/TRIF 등 주요 선천면역 센서부터 NF-κB·IRF3/7 활성화 및 핵내 이동까지, SARS-CoV-2 Nsp·ORF·구조단백질들이 각 단계를 차단해 숙주 면역 체계를 교란시키고 염증성 사이토카인과 Type I/III IFN 유도를 억제하는 전체 기전을 정리한 도식입니다.</p>
         <a class="text-link" href="publication.html">Publication 보기 →</a>
       </article>
     </div>
@@ -91,51 +91,69 @@
 window.addEventListener('DOMContentLoaded', function () {
   const slides = [
     {
-      image: 'slide-innate-signaling.png',
-      alt: { ko: '선천면역 반응 및 항바이러스 신호전달 기전 연구 figure', en: 'Figure on innate immune responses and antiviral signaling mechanisms' },
-      paper: 'The Innate Immune Viral Sensors and Their Functional Crosstalk',
+      image: 'slide-sarscov2-innate-evasion.png',
+      alt: { ko: 'SARS-CoV-2 단백질에 의한 다단계 선천면역 신호전달 억제 개요도', en: 'Overview diagram of multi-step innate immune signaling suppression by SARS-CoV-2 proteins' },
+      paper: 'SARS-CoV-2 Antagonism of Innate Antiviral Signaling',
       description: {
-        ko: '항바이러스 센서, IFN 유도, JAK-STAT 신호전달을 포함한 선천면역 반응 축을 요약한 대표 도식입니다.',
-        en: 'A representative schematic summarizing the innate immune response axis, including antiviral sensors, IFN induction, and JAK-STAT signaling.'
+        ko: 'PKR, RIG-I/MDA5-MAVS, TLR-MyD88/TRIF 등 주요 선천면역 센서부터 NF-κB·IRF3/7 활성화 및 핵내 이동까지, SARS-CoV-2 Nsp·ORF·구조단백질들이 각 단계를 차단해 숙주 면역 체계를 교란시키고 염증성 사이토카인과 Type I/III IFN 유도를 억제하는 전체 기전을 정리한 도식입니다.',
+        en: 'A comprehensive schematic showing how SARS-CoV-2 Nsp, ORF, and structural proteins disrupt the host immune system by blocking innate immune signaling at nearly every step - from upstream sensors (PKR, RIG-I/MDA5-MAVS, TLR-MyD88/TRIF) to NF-κB and IRF3/7 activation and nuclear translocation - suppressing pro-inflammatory cytokine and type I/III IFN induction.'
       }
     },
     {
-      image: 'slide-sarscov2-mhci.png',
-      alt: { ko: 'SARS-CoV-2의 MHC class I 항원제시 억제 figure', en: 'Figure showing SARS-CoV-2 inhibition of MHC class I antigen presentation' },
+      image: 'slide-orf6-nuclear-import-mhci.png',
+      alt: { ko: 'ORF6에 의한 STAT1/IRF1/NLRC5 핵내 이동 억제 3단 패널', en: 'Three-panel figure of ORF6-mediated inhibition of STAT1/IRF1/NLRC5 nuclear import' },
       paper: 'SARS-CoV-2 inhibits the MHC class I pathway by targeting the STAT1-IRF1-NLRC5 axis',
       description: {
-        ko: 'SARS-CoV-2가 STAT1-IRF1-NLRC5 축과 MHC class I 항원제시 경로를 교란하는 기전을 보여주는 figure입니다.',
-        en: 'A figure showing how SARS-CoV-2 disrupts the STAT1-IRF1-NLRC5 axis and the MHC class I antigen presentation pathway.'
+        ko: 'ORF6가 IRF1, STAT1, NLRC5의 NLS-cargo 복합체 핵내 이동을 각각 차단해 MHC class I 발현을 저해하는, SARS-CoV-2의 MHC class I 경로 억제 기전을 세 패널로 정리한 figure입니다.',
+        en: 'A three-panel figure showing how SARS-CoV-2 ORF6 inhibits the MHC class I pathway by blocking nuclear import of the NLS-cargo complexes for IRF1, STAT1, and NLRC5.'
       }
     },
     {
-      image: 'natcomms_fig7.png',
-      alt: { ko: 'SARS-CoV-2 ORF6와 MHC class I pathway를 다룬 Nature Communications figure', en: 'Nature Communications figure on SARS-CoV-2 ORF6 and the MHC class I pathway' },
-      paper: 'SARS-CoV-2 inhibits the MHC class I pathway by targeting the STAT1-IRF1-NLRC5 axis',
+      image: 'slide-ifn-gamma-mhci-pathway.png',
+      alt: { ko: 'IFN-γ-JAK-STAT1 경로를 통한 MHC class I 발현 유도 기전', en: 'Mechanism of MHC class I induction via the IFN-γ-JAK-STAT1 pathway' },
+      paper: 'IFN-γ-Induced MHC Class I Antigen Presentation Pathway',
       description: {
-        ko: 'ORF6에 의한 핵내 이동 억제와 MHC class I 발현 저해를 패널별로 정리한 Nature Communications figure입니다.',
-        en: 'A Nature Communications figure summarizing ORF6-mediated inhibition of nuclear transport and suppression of MHC class I expression by panel.'
+        ko: 'IFN-γ 수용체-JAK1/JAK2-STAT1 신호전달이 IRF1 및 NLRC5 발현을 유도하고, NLRC5가 RFX/CREB/NF-Y와 함께 CIITA enhanceosome을 형성해 MHC class I이 발현되는 정상 경로를 보여주는 도식입니다.',
+        en: 'A diagram showing the normal pathway of MHC class I expression, in which IFN-γ receptor-JAK1/JAK2-STAT1 signaling induces IRF1 and NLRC5, with NLRC5 assembling the CIITA enhanceosome together with RFX/CREB/NF-Y to activate MHC class I transcription.'
       }
     },
     {
-      image: 'slide-pulmonary-inflammatory.png',
-      alt: { ko: '폐 염증 반응 및 질환 모델 연구 figure', en: 'Figure on pulmonary inflammatory responses and disease models' },
+      image: 'slide-mcemp1-mechanism.png',
+      alt: { ko: 'MCEMP1의 KIT 어댑터 기능을 통한 비만세포 증식 기전', en: 'Mechanism of MCEMP1 as a KIT adaptor driving mast cell proliferation' },
       paper: 'Lung-specific MCEMP1 functions as an adaptor for KIT to promote SCF-mediated mast cell proliferation',
       description: {
-        ko: '폐 조직 병리, 면역형광, 염증성 분자 신호를 통해 pulmonary inflammatory molecules 연구 축을 보여주는 figure입니다.',
-        en: 'A figure highlighting the pulmonary inflammatory molecules research axis through lung histopathology, immunofluorescence, and inflammatory signaling.'
+        ko: 'MCEMP1이 SCF-KIT 축의 어댑터로 작용해 증식(Proliferation) 신호를 증폭시키는 과정을, LAT가 매개하는 IgE-FcεRI 탈과립(Degranulation) 경로와 나란히 비교해 보여주는 도식입니다. 두 경로 모두 Grb2/SOS-MAPK-MITF 축으로 수렴합니다.',
+        en: 'A diagram comparing how MCEMP1 acts as an adaptor for the SCF-KIT axis to amplify proliferation signaling, alongside the LAT-mediated IgE-FcεRI degranulation pathway, with both converging on the Grb2/SOS-MAPK-MITF axis.'
+      }
+    },
+    {
+      image: 'slide-henipah-virus-replication.jpg',
+      alt: { ko: 'Henipavirus 비리온 구조 및 복제 생활사 개요도', en: 'Overview diagram of Henipavirus virion structure and replication life cycle' },
+      paper: 'Henipavirus Structure and Replication Cycle',
+      description: {
+        ko: 'Henipavirus의 비리온 구조(G, F, M, N, P, L 단백질)와 ephrin-B2/B3 수용체 결합, 막융합, 복제·전사, 조립, budding으로 이어지는 전체 생활사를 정리한 도식입니다.',
+        en: 'A diagram summarizing Henipavirus virion structure (G, F, M, N, P, and L proteins) and its full replication cycle, from ephrin-B2/B3 receptor binding and membrane fusion through replication, transcription, assembly, and budding.'
       }
     }
   ];
 
-  // 캐러셀 이미지 프리로드: 아직 브라우저 캐시에 없는 이미지로 처음 전환될 때
-  // 네트워크 로딩이 끝날 때까지 이전 사진이 멈춰 있다가 뒤늦게 바뀌는 문제를 방지합니다.
-  // (참조를 배열에 유지해 로딩 도중 가비지 컬렉션되지 않도록 함)
-  const preloadedImages = slides.map(function (slide) {
-    const img = new Image();
-    img.src = slide.image;
-    return img;
-  });
+  // 캐러셀 이미지 프리로드: 단순히 미리 요청만 던지는 게 아니라, 4장이 전부
+  // "로드 완료"될 때까지 자동전환 타이머 자체를 시작하지 않습니다.
+  // 그래야 느린 네트워크에서도 nextSlide()가 실행되는 시점엔 이미지가 항상 준비돼 있어
+  // 이전 사진이 멈춰 있다가 뒤늦게 바뀌는 현상이 나오지 않습니다.
+  // (네트워크 문제로 로드가 끝나지 않는 경우를 대비해 최대 5초까지만 기다리고 그다음엔 그냥 시작)
+  function preloadImage(src) {
+    return new Promise(function (resolve) {
+      const img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(img); };
+      img.src = src;
+    });
+  }
+  const slidesReady = Promise.race([
+    Promise.all(slides.map(function (slide) { return preloadImage(slide.image); })),
+    new Promise(function (resolve) { setTimeout(resolve, 5000); })
+  ]);
 
   const imageEl = document.getElementById('carousel-image');
   const paperEl = document.getElementById('carousel-paper');
@@ -187,7 +205,10 @@ window.addEventListener('DOMContentLoaded', function () {
 
   renderDots();
   updateSlide(false);
-  timer = setInterval(nextSlide, 3500);
+  slidesReady.then(function () {
+    clearInterval(timer);
+    timer = setInterval(nextSlide, 3500);
+  });
   window.addEventListener('lab-language-change', function(){
     updateSlide(false);
   });
