@@ -555,10 +555,11 @@
     });
   }
   // 가로 스크롤(스냅)은 그대로 두고, 컨테이너 높이는 scrollLeft 위치에 맞춰
-  // 카드 사이를 실시간으로 보간한다. (이전엔 카드가 바뀌는 순간에만 높이를 갱신하고
-  // CSS transition으로 애니메이션을 걸었는데, 그러면 스크롤 도중 손가락/스크롤
-  // 움직임과 높이 변화 타이밍이 어긋나 뚝뚝 끊기듯 부자연스러웠음. 트랜지션을
-  // 빼고 스크롤 위치와 1:1로 붙여서 움직이면 가로 이동과 똑같이 자연스럽게 느껴짐)
+  // 카드 사이를 실시간으로 보간한다. (스크롤 이벤트 기반 + 1회성 rAF 스로틀이었을 때는
+  // 네이티브 스냅 애니메이션이 멈추는 마지막 순간의 scrollLeft를 못 잡거나, 관련 없는
+  // 다른 카드가 grid 공유 행 공간에 살짝 비쳐 보이는 문제가 있었음. 매 프레임 scrollLeft를
+  // 직접 다시 읽는 루프로 바꾸고, 현재 전환 중인 두 카드 외에는 visibility:hidden으로
+  // 숨겨서 다른 카드가 절대 비쳐 보이지 않게 함)
   function initLatestCarouselHeight(container){
     if(!container) return;
     function cardsOf(){
@@ -572,6 +573,7 @@
       var n=cards.length;
       if(!n) return;
       if(n===1){
+        cards[0].style.visibility='';
         container.style.height=(cards[0].scrollHeight+pad)+'px';
         return;
       }
@@ -580,6 +582,9 @@
       var lo=Math.max(0,Math.min(n-1,Math.floor(raw)));
       var hi=Math.max(0,Math.min(n-1,Math.ceil(raw)));
       var t=Math.max(0,Math.min(1,raw-lo));
+      cards.forEach(function(card,i){
+        card.style.visibility=(i===lo||i===hi)?'':'hidden';
+      });
       var hLo=cards[lo].scrollHeight, hHi=cards[hi].scrollHeight;
       container.style.height=(hLo+(hHi-hLo)*t+pad)+'px';
     }
@@ -587,11 +592,10 @@
     if(container.dataset.heightInit==='1') return;
     container.dataset.heightInit='1';
 
-    var raf=null;
-    container.addEventListener('scroll',function(){
-      if(raf) return;
-      raf=requestAnimationFrame(function(){ raf=null; update(); });
-    },{passive:true});
+    (function loop(){
+      update();
+      requestAnimationFrame(loop);
+    })();
 
     var resizeTimer=null;
     window.addEventListener('resize',function(){
