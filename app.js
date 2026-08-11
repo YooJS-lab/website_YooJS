@@ -555,11 +555,14 @@
     });
   }
   // 가로 스크롤(스냅)은 그대로 두고, 컨테이너 높이는 scrollLeft 위치에 맞춰
-  // 카드 사이를 실시간으로 보간한다. (스크롤 이벤트 기반 + 1회성 rAF 스로틀이었을 때는
-  // 네이티브 스냅 애니메이션이 멈추는 마지막 순간의 scrollLeft를 못 잡거나, 관련 없는
-  // 다른 카드가 grid 공유 행 공간에 살짝 비쳐 보이는 문제가 있었음. 매 프레임 scrollLeft를
-  // 직접 다시 읽는 루프로 바꾸고, 현재 전환 중인 두 카드 외에는 visibility:hidden으로
-  // 숨겨서 다른 카드가 절대 비쳐 보이지 않게 함)
+  // 카드 사이를 실시간으로 보간한다.
+  // - 매 프레임 무조건 style을 다시 쓰면(값이 안 바뀌어도) 브라우저가 매번 레이아웃을
+  //   다시 계산하게 되고, 빠르게 연속으로 스크롤할 때 이게 감당이 안 되면 잠깐 빈 화면
+  //   (높이가 순간적으로 이상한 값으로 찍히는 것)이 나올 수 있었음 → 값이 실제로
+  //   바뀔 때만 style을 쓰도록 변경.
+  // - 계산된 높이가 비정상적으로 작게(예: 레이아웃이 아직 안 잡힌 순간) 나오면 적용하지
+  //   않고 직전 정상 높이를 유지하도록 방어 코드 추가.
+  // - rAF 루프를 무한정 돌리지 않고, 스크롤 관련 동작이 있을 때만 잠깐 돌고 멈추게 함.
   function initLatestCarouselHeight(container){
     if(!container) return;
     function cardsOf(){
@@ -568,34 +571,59 @@
     }
     var cs=window.getComputedStyle(container);
     var pad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+    var lastHeight=null, lastVis=null;
     function update(){
       var cards=cardsOf();
       var n=cards.length;
       if(!n) return;
+      var newVis, newHeight;
       if(n===1){
-        cards[0].style.visibility='';
-        container.style.height=(cards[0].scrollHeight+pad)+'px';
-        return;
+        newVis=[true];
+        newHeight=cards[0].scrollHeight+pad;
+      }else{
+        var w=container.clientWidth||1;
+        var raw=container.scrollLeft/w;
+        var lo=Math.max(0,Math.min(n-1,Math.floor(raw)));
+        var hi=Math.max(0,Math.min(n-1,Math.ceil(raw)));
+        var t=Math.max(0,Math.min(1,raw-lo));
+        newVis=cards.map(function(_,i){ return i===lo||i===hi; });
+        var hLo=cards[lo].scrollHeight, hHi=cards[hi].scrollHeight;
+        newHeight=hLo+(hHi-hLo)*t+pad;
       }
-      var w=container.clientWidth||1;
-      var raw=container.scrollLeft/w;
-      var lo=Math.max(0,Math.min(n-1,Math.floor(raw)));
-      var hi=Math.max(0,Math.min(n-1,Math.ceil(raw)));
-      var t=Math.max(0,Math.min(1,raw-lo));
-      cards.forEach(function(card,i){
-        card.style.visibility=(i===lo||i===hi)?'':'hidden';
-      });
-      var hLo=cards[lo].scrollHeight, hHi=cards[hi].scrollHeight;
-      container.style.height=(hLo+(hHi-hLo)*t+pad)+'px';
+      if(!lastVis||lastVis.length!==newVis.length){
+        cards.forEach(function(card,i){ card.style.visibility=newVis[i]?'':'hidden'; });
+      }else{
+        cards.forEach(function(card,i){
+          if(lastVis[i]!==newVis[i]) card.style.visibility=newVis[i]?'':'hidden';
+        });
+      }
+      lastVis=newVis;
+      // 20px 미만은 비정상 값으로 보고 무시 (직전 정상 높이 유지)
+      if(newHeight>=20 && (lastHeight===null||Math.abs(lastHeight-newHeight)>=0.5)){
+        container.style.height=newHeight+'px';
+        lastHeight=newHeight;
+      }
     }
     update();
     if(container.dataset.heightInit==='1') return;
     container.dataset.heightInit='1';
 
-    (function loop(){
+    var rafId=null, idleTimer=null;
+    function tick(){
       update();
-      requestAnimationFrame(loop);
-    })();
+      rafId=requestAnimationFrame(tick);
+    }
+    function ensureLoop(){
+      if(rafId===null) rafId=requestAnimationFrame(tick);
+      clearTimeout(idleTimer);
+      idleTimer=setTimeout(function(){
+        if(rafId!==null){ cancelAnimationFrame(rafId); rafId=null; }
+      },400);
+    }
+    ensureLoop();
+    container.addEventListener('scroll', ensureLoop, {passive:true});
+    container.addEventListener('touchstart', ensureLoop, {passive:true});
+    container.addEventListener('mousedown', ensureLoop, {passive:true});
 
     var resizeTimer=null;
     window.addEventListener('resize',function(){
