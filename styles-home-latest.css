@@ -7,6 +7,8 @@
   margin: 0;
   padding: 2px 0 10px;
   scrollbar-width: thin;
+  /* 카드 전환 시 컨테이너 높이가 JS로 부드럽게 바뀌도록 */
+  transition: height .28s ease;
 }
 
 #public-post-list.latest-carousel .latest-track {
@@ -14,7 +16,10 @@
   grid-auto-flow: column;
   grid-auto-columns: 100%;
   gap: 0;
-  align-items: stretch;
+  /* stretch였으면 모든 카드가 제일 긴 카드 높이로 강제로 늘어나서
+     카드별 실제 높이(scrollHeight)를 잴 수 없었음. start로 바꿔 각 카드가
+     자기 콘텐츠(사진+글) 양만큼만 실제 높이를 갖도록 함. */
+  align-items: start;
 }
 
 #public-post-list.latest-carousel .latest-card-v2 {
@@ -98,9 +103,9 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 320px;
-  height: 320px;
-  overflow: hidden;
+  /* 고정 height 제거: 사진 비율에 맞춰 박스 높이가 자동으로 잡힘.
+     극단적으로 세로가 긴 사진만 max-height로 상한을 둠 */
+  max-height: 480px;
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -111,10 +116,10 @@
 #public-post-list.latest-carousel .latest-media-img-v2,
 #public-post-list.latest-carousel .latest-media-video-v2 {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
   max-width: 100%;
-  max-height: 100%;
+  max-height: 452px; /* 480 - 좌우 padding 제외한 박스 내부 여유 */
   border-radius: 10px;
   object-fit: contain;
   background: transparent;
@@ -162,8 +167,12 @@
 
   #public-post-list.latest-carousel .latest-media-link-v2,
   #public-post-list.latest-carousel .latest-media-box-v2 {
-    min-height: 240px;
-    height: 240px;
+    max-height: 340px;
+  }
+
+  #public-post-list.latest-carousel .latest-media-img-v2,
+  #public-post-list.latest-carousel .latest-media-video-v2 {
+    max-height: 312px;
   }
 }
 

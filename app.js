@@ -554,10 +554,66 @@
       stage.addEventListener('touchend',function(e){ var dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>40) goTo(dx<0?cur+1:cur-1); },{passive:true});
     });
   }
+  // 가로 스크롤(스냅)은 그대로 두고, 컨테이너 높이만 "현재 보이는 카드"의
+  // 실제 콘텐츠 높이(사진 비율 + 글 길이)에 맞춰 JS로 갱신한다.
+  function initLatestCarouselHeight(container){
+    if(!container) return;
+    function verticalPad(){
+      var cs=window.getComputedStyle(container);
+      return (parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);
+    }
+    function cardsOf(){
+      var track=container.querySelector('.latest-track');
+      return track?Array.from(track.children):[];
+    }
+    function measure(idx){
+      var cards=cardsOf();
+      var card=cards[idx]||cards[0];
+      return card?(card.scrollHeight+verticalPad()):0;
+    }
+    function activeIndex(){
+      var cards=cardsOf();
+      if(cards.length<=1) return 0;
+      var w=container.clientWidth||1;
+      var idx=Math.round(container.scrollLeft/w);
+      return Math.max(0,Math.min(cards.length-1,idx));
+    }
+    // 렌더 직후엔 애니메이션 없이 즉시 높이를 맞춘다 (재렌더 때도 매번 실행)
+    var idx0=activeIndex();
+    container.style.transition='none';
+    container.style.height=measure(idx0)+'px';
+    void container.offsetHeight;
+    container.style.transition='';
+
+    if(container.dataset.heightInit==='1') return;
+    container.dataset.heightInit='1';
+
+    var lastIdx=idx0, raf=null;
+    container.addEventListener('scroll',function(){
+      if(raf) return;
+      raf=requestAnimationFrame(function(){
+        raf=null;
+        var idx=activeIndex();
+        if(idx!==lastIdx){
+          lastIdx=idx;
+          container.style.height=measure(idx)+'px';
+        }
+      });
+    },{passive:true});
+
+    var resizeTimer=null;
+    window.addEventListener('resize',function(){
+      clearTimeout(resizeTimer);
+      resizeTimer=setTimeout(function(){
+        container.style.height=measure(lastIdx)+'px';
+      },150);
+    });
+  }
   function renderLatestPosts(c, posts, empty){
     if(!c)return;
     if(!posts.length){
       c.innerHTML='<div class="latest-track"><article class="panel latest-card-v2 empty"><p>'+escapeHtml(empty)+'</p></article></div>';
+      initLatestCarouselHeight(c);
       return;
     }
     var cards = posts.slice(0,3).map(function(post){
@@ -578,6 +634,7 @@
     }).join('');
     c.innerHTML='<div class="latest-track">'+cards+'</div>';
     initLatestCarousels(c);
+    initLatestCarouselHeight(c);
   }
   function enableHorizontalDrag(el){
     if(!el||el.dataset.dragReady==='1')return;
