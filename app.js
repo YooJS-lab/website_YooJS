@@ -455,7 +455,7 @@
     var labelHtml = '<div class="post-label-row"><span class="badge">'+escapeHtml(post.section==='news'?tr('News'):(post.section==='gallery'?tr('Gallery'):tr('Board')))+'</span><span class="mini-tag">'+categoryText+'</span></div>';
     if(post.section==='gallery'){
       var galleryCategoryHtml = '<div class="gallery-category-inline">'+categoryText+'</div>';
-      return '<article class="panel post-card section-gallery'+(hasMedia?' has-media':'')+'">'+
+      return '<article id="post-'+escapeHtml(String(post.id))+'" class="panel post-card section-gallery'+(hasMedia?' has-media':'')+'">'+
         '<div class="gallery-card-head">'+
           '<div class="gallery-card-title-row">'+galleryCategoryHtml+'<h3 class="post-title gallery-inline-title'+titleClass+'"'+titleStyle+'>'+escapeHtml(post.title||'')+'</h3></div>'+
           '<div class="gallery-card-meta-row"><span class="post-author">'+escapeHtml(post.author_name||'')+'</span><span class="post-date">'+fmtDate(post.created_at)+'</span></div>'+
@@ -479,7 +479,7 @@
         actionHtml+
       '</article>';
     }
-    return '<article class="panel post-card section-'+escapeHtml(post.section||'board')+(hasMedia?' has-media':'')+layoutClass+'">'+
+    return '<article id="post-'+escapeHtml(String(post.id))+'" class="panel post-card section-'+escapeHtml(post.section||'board')+(hasMedia?' has-media':'')+layoutClass+'">'+
       labelHtml+
       '<div class="post-layout">'+
         '<div class="post-content">'+badgeHtml+'<h3 class="post-title'+titleClass+'"'+titleStyle+'>'+escapeHtml(post.title||'')+'</h3><div class="post-meta"><span class="post-author">'+escapeHtml(post.author_name||'')+'</span><span class="post-date">'+fmtDate(post.created_at)+'</span></div><div class="post-body'+bodyClass+'">'+formatBodyHtml(bodyText)+'</div>'+actionHtml+'</div>'+(hasMedia?'<div class="post-side-media">'+media+'</div>':'')+'</div></article>';
@@ -491,25 +491,28 @@
     c.innerHTML=posts.map(function(p){return renderPostCard(p,false,false,mode);}).join('');
     initLatestCarousels(c);
   }
-  function renderLatestMedia(post){
+  function renderLatestMedia(post, postHref){
     var urls=parseImageUrls(post.image_url);
     var url=urls[0]||'';
-    if(!url) return '';
     var kind=inferMediaKind(post);
+    if(!url){
+      // 사진이 없는 글: "사진 없음" 안내만 보여주고 클릭하면 전체 글로 이동
+      return '<div class="latest-card-media-v2"><a href="'+escapeHtml(postHref)+'" class="latest-media-box-v2 latest-file-box-v2 latest-media-empty-v2"><div class="file-note">사진 없음 · 게시글 보기</div></a></div>';
+    }
     if(kind==='video'){
       return '<div class="latest-card-media-v2"><div class="latest-media-box-v2"><video class="latest-media-video-v2" controls preload="metadata"><source src="'+escapeHtml(url)+'"></video></div></div>';
     }
     if(kind==='heic'){
-      return '<div class="latest-card-media-v2"><div class="latest-media-box-v2 latest-file-box-v2"><div class="heic-note">HEIC / HEIF 파일</div><a href="'+escapeHtml(url)+'" target="_blank" rel="noopener" class="button">파일 열기</a></div></div>';
+      return '<div class="latest-card-media-v2"><a href="'+escapeHtml(postHref)+'" class="latest-media-box-v2 latest-file-box-v2"><div class="heic-note">HEIC / HEIF 파일 · 게시글 보기</div></a></div>';
     }
     if(kind==='file'){
-      return '<div class="latest-card-media-v2"><div class="latest-media-box-v2 latest-file-box-v2"><div class="file-note">첨부 파일</div><a href="'+escapeHtml(url)+'" target="_blank" rel="noopener" class="button">파일 열기</a></div></div>';
+      return '<div class="latest-card-media-v2"><a href="'+escapeHtml(postHref)+'" class="latest-media-box-v2 latest-file-box-v2"><div class="file-note">첨부 파일 · 게시글 보기</div></a></div>';
     }
     if(urls.length<=1){
-      return '<div class="latest-card-media-v2"><a href="'+escapeHtml(url)+'" target="_blank" rel="noopener" class="latest-media-link-v2"><img src="'+escapeHtml(url)+'" class="latest-media-img-v2" loading="lazy" alt="'+escapeHtml(post.title||'media')+'"></a></div>';
+      return '<div class="latest-card-media-v2"><a href="'+escapeHtml(postHref)+'" class="latest-media-link-v2"><img src="'+escapeHtml(url)+'" class="latest-media-img-v2" loading="lazy" alt="'+escapeHtml(post.title||'media')+'"></a></div>';
     }
     var slides=urls.map(function(u,i){
-      return '<div class="lmc-slide"><a href="'+escapeHtml(u)+'" target="_blank" rel="noopener" class="latest-media-link-v2">'+
+      return '<div class="lmc-slide"><a href="'+escapeHtml(postHref)+'" class="latest-media-link-v2">'+
         '<img src="'+escapeHtml(u)+'" class="latest-media-img-v2" loading="lazy" alt="'+escapeHtml((post.title||'media')+' '+(i+1))+'">'+
       '</a></div>';
     }).join('');
@@ -639,19 +642,9 @@
       return;
     }
     var cards = posts.slice(0,3).map(function(post){
-      var parsed=parseStyledBody(post.body||'');
-      var bodyText=parsed.body||'';
-      var categoryText = escapeHtml(post.category||'');
-      return '<article class="panel latest-card-v2 '+escapeHtml(post.section||'board')+'">'+
-        '<div class="latest-card-head-v2">'+
-          '<div class="latest-card-title-row-v2">'+
-            '<div class="latest-category-inline-v2">'+categoryText+'</div>'+
-            '<h3 class="latest-inline-title-v2">'+escapeHtml(post.title||'')+'</h3>'+
-          '</div>'+
-          '<div class="latest-card-meta-row-v2"><span class="post-author">'+escapeHtml(post.author_name||'')+'</span><span class="post-date">'+fmtDate(post.created_at)+'</span></div>'+
-        '</div>'+
-        renderLatestMedia(post)+
-        '<div class="latest-card-body-v2">'+formatBodyHtml(bodyText)+'</div>'+
+      var href=postPageUrl(post);
+      return '<article class="panel latest-card-v2 latest-card-photo-only '+escapeHtml(post.section||'board')+'">'+
+        renderLatestMedia(post, href)+
       '</article>';
     }).join('');
     c.innerHTML='<div class="latest-track">'+cards+'</div>';
@@ -681,6 +674,14 @@
   }
   function normalizeCategoryValue(v){
     return normalizeTextValue(v);
+  }
+  // 이 게시물의 "전체 글"이 실제로 보이는 페이지 URL(+앵커).
+  // gallery 섹션 글은 gallery.html, 그 외(board 등)는 boards.html에 렌더링되므로 맞춰서 분기.
+  function postPageUrl(post){
+    var sec=normalizeSectionValue(post&&post.section);
+    var page=sec==='gallery'?'gallery.html':'boards.html';
+    var id=post&&post.id!=null?String(post.id):'';
+    return page+(id?('#post-'+encodeURIComponent(id)):'');
   }
   function normalizePostRecord(post){
     post=post||{};
@@ -824,6 +825,22 @@
         }).join('');
       }
     }
+  }
+  // 홈 화면의 사진 카드에서 "#post-<id>" 링크로 들어왔을 때, 렌더링된 목록 안에서
+  // 해당 글로 스크롤하고 잠깐 하이라이트해준다.
+  function scrollToPostAnchor(){
+    var hash=location.hash||'';
+    if(hash.indexOf('#post-')!==0) return;
+    var id=hash.slice(1);
+    function go(){
+      var el=document.getElementById(id);
+      if(!el) return;
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+      el.classList.add('post-highlight');
+      setTimeout(function(){ el.classList.remove('post-highlight'); },2200);
+    }
+    setTimeout(go,60);
+    setTimeout(go,500); // 이미지 로딩으로 레이아웃이 늦게 밀리는 경우 보정
   }
   async function renderSectionPosts(){
     var containers=qsa('[data-section]');if(!containers.length)return;
@@ -1524,6 +1541,7 @@
     await handleDashboard();
     await renderPublicPosts();
     await renderSectionPosts();
+    scrollToPostAnchor();
     await Promise.all([renderLabMembers(), renderAlumni()]);
     await renderPublicationDB();
     await applyBg();

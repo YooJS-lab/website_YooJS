@@ -9,6 +9,11 @@
 .gallery-strip .post-img, .gallery-strip .post-video {max-height: 200px !important}
 .file-box, .heic-box {min-height: 150px !important; display: flex !important; flex-direction: column; justify-content: center; align-items: center; gap: 12px; text-align: center}
 .file-note, .heic-note {font-size: 1rem; font-weight: 800; color: #5f7388}
+.post-card.post-highlight {animation: post-highlight-pulse 2.2s ease-out 1}
+@keyframes post-highlight-pulse {
+  0% {box-shadow: 0 0 0 3px rgba(59,130,246,.55); background-color: rgba(59,130,246,.08)}
+  100% {box-shadow: 0 0 0 3px rgba(59,130,246,0); background-color: transparent}
+}
 @media (max-width:920px) {
   .post-strip {grid-auto-columns: 86vw; cursor: auto}
   .latest-strip .post-layout, .gallery-strip .post-layout {grid-template-columns: 1fr !important}

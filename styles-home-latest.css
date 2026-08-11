@@ -130,6 +130,16 @@
   flex-direction: column;
   gap: 12px;
   text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#public-post-list.latest-carousel .latest-media-empty-v2 {
+  min-height: 120px;
+}
+
+#public-post-list.latest-carousel .latest-media-link-v2 {
+  cursor: pointer;
 }
 
 #public-post-list.latest-carousel .latest-card-body-v2 {
